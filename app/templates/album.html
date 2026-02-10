@@ -1,0 +1,812 @@
+{% extends "base.html" %}
+{% block title %}📸 我们的相册 - 珍藏每一刻美好{% endblock %}
+
+{% block content %}
+<div class="album-master-container">
+    <!-- 顶部欢迎区域 -->
+    <div class="album-hero">
+        <div class="hero-content">
+            <h1 class="hero-title">
+                <span class="hero-icon">📸</span>
+                我们的共享相册
+            </h1>
+            <p class="hero-subtitle">珍藏每一刻美好，记录每一次感动</p>
+            <p class="hero-description">
+                在这里，我们共同创建回忆的收藏馆。每一张照片都是一个故事，
+                每一次分享都是一份温暖。让我们一起，把时光酿成永恒。
+            </p>
+        </div>
+        <div class="hero-stats">
+            <div class="stat-card">
+                <div class="stat-number">4</div>
+                <div class="stat-label">个相册分类</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">∞</div>
+                <div class="stat-label">无限回忆</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">💕</div>
+                <div class="stat-label">共同创造</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 相册网格 -->
+    <div class="album-grid-section">
+        <div class="section-header">
+            <h2><i class="fas fa-folder-open"></i> 相册合集</h2>
+            <p>点击相册，探索属于我们的回忆世界</p>
+        </div>
+
+        <div class="albums-grid">
+            <!-- 时间轴相册 -->
+            <a href="/album/timeline" class="album-card timeline-card">
+                <div class="card-illustration">
+                    <div class="illustration-circle">
+                        <i class="fas fa-stream"></i>
+                    </div>
+                    <div class="floating-elements">
+                        <div class="floating-dot dot-1"></div>
+                        <div class="floating-dot dot-2"></div>
+                        <div class="floating-dot dot-3"></div>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div class="card-header">
+                        <h3>时间轴相册</h3>
+                        <span class="card-badge">最活跃</span>
+                    </div>
+                    <p class="card-description">
+                        按时间顺序记录我们的点点滴滴，从初次相遇到每一个珍贵瞬间
+                    </p>
+                    <div class="card-meta">
+                        <span class="meta-item">
+                            <i class="far fa-calendar-alt"></i>
+                            时间顺序
+                        </span>
+                        <span class="meta-item">
+                            <i class="far fa-images"></i>
+                            全部照片
+                        </span>
+                    </div>
+                </div>
+                <div class="card-hover">
+                    <span>进入相册</span>
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+
+            <!-- 我们的合照 -->
+            <a href="/couple/wall" class="album-card couple-card">
+                <div class="card-illustration">
+                    <div class="illustration-circle">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <div class="floating-elements">
+                        <div class="floating-heart heart-1">❤️</div>
+                        <div class="floating-heart heart-2">💕</div>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div class="card-header">
+                        <h3>我们的合照</h3>
+                        <span class="card-badge">私密</span>
+                    </div>
+                    <p class="card-description">
+                        只属于我们的甜蜜瞬间，珍藏每一次相聚的温暖与笑容
+                    </p>
+                    <div class="card-meta">
+                        <span class="meta-item">
+                            <i class="fas fa-users"></i>
+                            二人世界
+                        </span>
+                        <span class="meta-item">
+                            <i class="fas fa-lock"></i>
+                            私密空间
+                        </span>
+                    </div>
+                </div>
+                <div class="card-hover">
+                    <span>进入相册</span>
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+
+            <!-- 特殊日照片 -->
+            <a href="/album/festival" class="album-card festival-card">
+                <div class="card-illustration">
+                    <div class="illustration-circle">
+                        <i class="fas fa-gift"></i>
+                    </div>
+                    <div class="floating-elements">
+                        <div class="floating-star star-1">✨</div>
+                        <div class="floating-star star-2">🎉</div>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div class="card-header">
+                        <h3>特殊日纪念</h3>
+                        <span class="card-badge">节日</span>
+                    </div>
+                    <p class="card-description">
+                        节日与纪念日的专属记录，每一个特殊时刻都值得被珍藏
+                    </p>
+                    <div class="card-meta">
+                        <span class="meta-item">
+                            <i class="fas fa-birthday-cake"></i>
+                            生日纪念
+                        </span>
+                        <span class="meta-item">
+                            <i class="fas fa-glass-cheers"></i>
+                            节日庆祝
+                        </span>
+                    </div>
+                </div>
+                <div class="card-hover">
+                    <span>进入相册</span>
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+
+            <!-- 出门游玩 -->
+            <a href="/album/travel" class="album-card travel-card">
+                <div class="card-illustration">
+                    <div class="illustration-circle">
+                        <i class="fas fa-plane"></i>
+                    </div>
+                    <div class="floating-elements">
+                        <div class="floating-cloud cloud-1">☁️</div>
+                        <div class="floating-cloud cloud-2">🌤️</div>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div class="card-header">
+                        <h3>旅行记忆</h3>
+                        <span class="card-badge">探索</span>
+                    </div>
+                    <p class="card-description">
+                        走过的地方，看过的风景，每一次旅行都是我们的共同冒险
+                    </p>
+                    <div class="card-meta">
+                        <span class="meta-item">
+                            <i class="fas fa-map-marked-alt"></i>
+                            旅行足迹
+                        </span>
+                        <span class="meta-item">
+                            <i class="fas fa-mountain"></i>
+                            风景探索
+                        </span>
+                    </div>
+                </div>
+                <div class="card-hover">
+                    <span>进入相册</span>
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- 使用指南 -->
+    <div class="guide-section">
+        <div class="section-header">
+            <h2><i class="fas fa-question-circle"></i> 使用指南</h2>
+            <p>如何更好地使用我们的共享相册</p>
+        </div>
+
+        <div class="guide-steps">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h4>上传照片</h4>
+                    <p>进入相册后点击"上传照片"按钮，选择你想要分享的瞬间</p>
+                </div>
+            </div>
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h4>添加描述</h4>
+                    <p>为照片添加记忆描述、拍摄时间和地点，让回忆更完整</p>
+                </div>
+            </div>
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h4>互动交流</h4>
+                    <p>浏览他人照片，点赞评论，分享感受，让相册充满温暖</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部行动号召 -->
+    <div class="cta-section">
+        <div class="cta-content">
+            <h3>准备好开始记录了吗？</h3>
+            <p>现在就上传第一张照片，开启我们的回忆收藏之旅</p>
+            <a href="/album/timeline" class="cta-button">
+                <i class="fas fa-camera"></i>
+                开始上传照片
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+// 卡片悬浮动画
+document.addEventListener('DOMContentLoaded', function() {
+    const albumCards = document.querySelectorAll('.album-card');
+
+    // 为每个卡片添加鼠标悬浮效果
+    albumCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-15px)';
+            this.style.boxShadow = '0 25px 50px rgba(0, 0, 0, 0.15)';
+
+            // 显示悬浮按钮
+            const hoverElement = this.querySelector('.card-hover');
+            hoverElement.style.opacity = '1';
+            hoverElement.style.transform = 'translateY(0)';
+        });
+
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.1)';
+
+            // 隐藏悬浮按钮
+            const hoverElement = this.querySelector('.card-hover');
+            hoverElement.style.opacity = '0';
+            hoverElement.style.transform = 'translateY(20px)';
+        });
+    });
+
+    // 为浮动元素添加动画
+    const floatingElements = document.querySelectorAll('.floating-dot, .floating-heart, .floating-star, .floating-cloud');
+    floatingElements.forEach(el => {
+        // 随机动画延迟和持续时间
+        const delay = Math.random() * 2;
+        const duration = 3 + Math.random() * 4;
+
+        el.style.animationDelay = `${delay}s`;
+        el.style.animationDuration = `${duration}s`;
+    });
+
+    // 页面加载时的淡入效果
+    const pageElements = document.querySelectorAll('.album-hero, .album-card, .guide-card, .step-card');
+    pageElements.forEach((el, index) => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+
+        setTimeout(() => {
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+        }, 100 + index * 100);
+    });
+});
+
+// 添加键盘导航支持
+document.addEventListener('keydown', function(e) {
+    const albumCards = document.querySelectorAll('.album-card');
+    const currentFocus = document.activeElement;
+
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        for (let i = 0; i < albumCards.length; i++) {
+            if (albumCards[i] === currentFocus && i < albumCards.length - 1) {
+                albumCards[i + 1].focus();
+                break;
+            }
+        }
+    }
+
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        for (let i = 0; i < albumCards.length; i++) {
+            if (albumCards[i] === currentFocus && i > 0) {
+                albumCards[i - 1].focus();
+                break;
+            }
+        }
+    }
+
+    if (e.key === 'Enter' && currentFocus.classList.contains('album-card')) {
+        currentFocus.click();
+    }
+});
+</script>
+
+<style>
+/* 基础样式重置 */
+.album-master-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* 顶部欢迎区域 */
+.album-hero {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 25px;
+    padding: 50px 40px;
+    color: white;
+    margin-bottom: 50px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 15px 35px rgba(102, 126, 234, 0.2);
+}
+
+.album-hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+    border-radius: 50%;
+}
+
+.hero-content {
+    max-width: 700px;
+    position: relative;
+    z-index: 2;
+}
+
+.hero-title {
+    font-size: 48px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.hero-icon {
+    font-size: 56px;
+    background: rgba(255, 255, 255, 0.2);
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+}
+
+.hero-subtitle {
+    font-size: 22px;
+    margin-bottom: 20px;
+    opacity: 0.9;
+}
+
+.hero-description {
+    font-size: 16px;
+    line-height: 1.6;
+    opacity: 0.85;
+    max-width: 600px;
+}
+
+.hero-stats {
+    display: flex;
+    gap: 20px;
+    margin-top: 40px;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 20px;
+    min-width: 120px;
+    text-align: center;
+    transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.stat-number {
+    font-size: 36px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+/* 相册网格区域 */
+.album-grid-section {
+    margin-bottom: 60px;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.section-header h2 {
+    font-size: 32px;
+    color: #333;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.section-header p {
+    color: #666;
+    font-size: 16px;
+}
+
+.albums-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+}
+
+/* 相册卡片样式 */
+.album-card {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.album-card:focus {
+    outline: 2px solid #667eea;
+    outline-offset: 4px;
+}
+
+/* 卡片插画区域 */
+.card-illustration {
+    height: 180px;
+    background: linear-gradient(135deg, #f5f7ff 0%, #e6e9ff 100%);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.illustration-circle {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    z-index: 2;
+}
+
+/* 不同卡片的主题颜色 */
+.timeline-card .illustration-circle {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.couple-card .illustration-circle {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
+    color: white;
+}
+
+.festival-card .illustration-circle {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+.travel-card .illustration-circle {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+}
+
+/* 浮动元素动画 */
+.floating-elements {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+}
+
+.floating-dot,
+.floating-heart,
+.floating-star,
+.floating-cloud {
+    position: absolute;
+    animation: float 3s infinite ease-in-out;
+}
+
+.floating-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(102, 126, 234, 0.3);
+}
+
+.floating-heart,
+.floating-star,
+.floating-cloud {
+    font-size: 20px;
+    opacity: 0.7;
+}
+
+/* 浮动元素位置 */
+.dot-1 { top: 20%; left: 20%; }
+.dot-2 { top: 60%; right: 25%; }
+.dot-3 { bottom: 30%; left: 35%; }
+
+.heart-1 { top: 25%; right: 20%; }
+.heart-2 { bottom: 25%; left: 20%; }
+
+.star-1 { top: 15%; left: 15%; }
+.star-2 { bottom: 20%; right: 15%; }
+
+.cloud-1 { top: 30%; right: 15%; }
+.cloud-2 { bottom: 40%; left: 20%; }
+
+@keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(5deg); }
+}
+
+/* 卡片内容区域 */
+.card-content {
+    padding: 25px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.card-header h3 {
+    font-size: 22px;
+    color: #333;
+    margin: 0;
+    flex: 1;
+}
+
+.card-badge {
+    background: #e6e9ff;
+    color: #667eea;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-left: 10px;
+}
+
+.timeline-card .card-badge { background: #e6e9ff; color: #667eea; }
+.couple-card .card-badge { background: #ffe6e6; color: #ff6b6b; }
+.festival-card .card-badge { background: #f5e6ff; color: #9b51e0; }
+.travel-card .card-badge { background: #e6f7ff; color: #4facfe; }
+
+.card-description {
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    flex: 1;
+}
+
+.card-meta {
+    display: flex;
+    gap: 15px;
+    margin-top: auto;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #888;
+}
+
+.meta-item i {
+    font-size: 14px;
+}
+
+/* 卡片悬浮效果 */
+.card-hover {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to right, #667eea, #764ba2);
+    color: white;
+    padding: 15px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.timeline-card .card-hover { background: linear-gradient(to right, #667eea, #764ba2); }
+.couple-card .card-hover { background: linear-gradient(to right, #ff6b6b, #ff8e8e); }
+.festival-card .card-hover { background: linear-gradient(to right, #f093fb, #f5576c); }
+.travel-card .card-hover { background: linear-gradient(to right, #4facfe, #00f2fe); }
+
+/* 使用指南区域 */
+.guide-section {
+    background: #f8f9ff;
+    border-radius: 20px;
+    padding: 40px;
+    margin-bottom: 60px;
+}
+
+.guide-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin-top: 30px;
+}
+
+.step-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.step-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.step-number {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.step-content h4 {
+    margin: 0 0 10px 0;
+    color: #333;
+    font-size: 18px;
+}
+
+.step-content p {
+    margin: 0;
+    color: #666;
+    line-height: 1.6;
+    font-size: 14px;
+}
+
+/* 底部行动号召 */
+.cta-section {
+    text-align: center;
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    border-radius: 20px;
+    padding: 50px 30px;
+    color: white;
+}
+
+.cta-content h3 {
+    font-size: 32px;
+    margin-bottom: 15px;
+}
+
+.cta-content p {
+    font-size: 18px;
+    opacity: 0.9;
+    margin-bottom: 30px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.cta-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background: white;
+    color: #667eea;
+    padding: 15px 35px;
+    border-radius: 30px;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.cta-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 30px rgba(255, 255, 255, 0.2);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .album-master-container {
+        padding: 15px;
+    }
+
+    .album-hero {
+        padding: 30px 20px;
+    }
+
+    .hero-title {
+        font-size: 32px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .hero-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 40px;
+    }
+
+    .hero-stats {
+        flex-wrap: wrap;
+    }
+
+    .albums-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .guide-steps {
+        grid-template-columns: 1fr;
+    }
+
+    .section-header h2 {
+        font-size: 26px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-title {
+        font-size: 28px;
+    }
+
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .card-badge {
+        align-self: flex-start;
+    }
+
+    .card-meta {
+        flex-direction: column;
+        gap: 8px;
+    }
+}
+</style>
+{% endblock %}

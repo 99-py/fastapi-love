@@ -1,0 +1,1240 @@
+{% extends "base.html" %}
+{% block title %}📅 共享时光轴{% endblock %}
+
+{% block content %}
+<div class="timeline-container">
+    <!-- 顶部统计卡片 -->
+    <div class="timeline-stats-card">
+        <div class="stats-header">
+            <h1><i class="fas fa-history"></i> 共享时光轴</h1>
+            <p>记录我们的每一个美好瞬间</p>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-icon">📸</div>
+                <div class="stat-info">
+                    <div class="stat-value">{{ photos_count }}</div>
+                    <div class="stat-label">张照片</div>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon">👥</div>
+                <div class="stat-info">
+                    <div class="stat-value">{{ users_count }}</div>
+                    <div class="stat-label">位成员</div>
+                </div>
+            </div>
+<!--            <div class="stat-item">-->
+<!--                <div class="stat-icon">💬</div>-->
+<!--                <div class="stat-info">-->
+<!--                    <div class="stat-value">-->
+<!--                        {# 修复这里的错误：使用正确的 Jinja2 语法 #}-->
+<!--                        {% set total_comments = 0 %}-->
+<!--                        {% for items in timeline.values() %}-->
+<!--                            {% for item in items %}-->
+<!--                                {% set total_comments = total_comments + item.comments|length %}-->
+<!--                            {% endfor %}-->
+<!--                        {% endfor %}-->
+<!--                        {{ total_comments }}-->
+<!--                    </div>-->
+<!--                    <div class="stat-label">条评论</div>-->
+<!--                </div>-->
+<!--            </div>-->
+        </div>
+    </div>
+
+    <!-- 操作栏 -->
+    <div class="action-section">
+        <a href="/album/timeline/upload" class="upload-btn">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <span>上传新照片</span>
+        </a>
+        <div class="user-welcome">
+            <i class="fas fa-user-circle"></i>
+            <span>{{ current_user }}</span>
+        </div>
+    </div>
+
+    <!-- 时间轴主体 -->
+    <div class="timeline-wrapper">
+        <!-- 中央时间轴 -->
+        <div class="timeline-line"></div>
+
+        {% if timeline %}
+            {% for month, items in timeline.items() %}
+            <!-- 月份节点 -->
+            <div class="timeline-month-node">
+                <div class="month-badge">
+                    <div class="month-year">{{ month.split('-')[0] }}</div>
+                    <div class="month-name">{{ month.split('-')[1] }}月</div>
+                </div>
+            </div>
+
+            <!-- 该月所有照片 -->
+            {% for item in items %}
+            {% set photo = item.photo %}
+            {% set comments = item.comments %}
+            {% set loop_index = loop.index %}
+
+            <div class="timeline-item {% if loop_index % 2 == 0 %}timeline-right{% else %}timeline-left{% endif %}"
+                 id="photo-{{ photo.id }}">
+                <!-- 时间轴节点 -->
+                <div class="timeline-node">
+                    <div class="node-dot"></div>
+                    <div class="node-date">
+                        {{ photo.shoot_date.strftime("%d") }}
+                        <small>{{ photo.shoot_date.strftime("%a") }}</small>
+                    </div>
+                </div>
+
+                <!-- 照片卡片 -->
+                <div class="timeline-card">
+                    <!-- 卡片头部 -->
+                    <div class="card-header">
+                        <div class="user-info">
+                            <div class="user-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="user-details">
+                                <div class="user-name">{{ photo.user }}</div>
+                                <div class="post-time">
+                                    <i class="far fa-clock"></i>
+                                    {{ photo.shoot_date.strftime("%Y-%m-%d %H:%M") }}
+                                </div>
+                            </div>
+                        </div>
+                        {% if photo.user == current_user %}
+                        <button class="delete-btn" data-id="{{ photo.id }}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                        {% endif %}
+                    </div>
+
+                    <!-- 照片区域 -->
+                    <div class="photo-wrapper">
+                        {% if photo.image %}
+                        <img src="{{ photo.image }}"
+                             alt="回忆照片"
+                             class="photo-image"
+                             loading="lazy"
+                             onclick="openImageViewer('{{ photo.image }}')">
+                        {% else %}
+                        <div class="no-photo-placeholder">
+                            <i class="fas fa-image"></i>
+                            <span>照片加载中...</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- 照片信息 -->
+                    <div class="photo-info">
+                        <div class="memory-text">
+                            <i class="fas fa-quote-left"></i>
+                            {{ photo.memory }}
+                        </div>
+                        {% if photo.location %}
+                        <div class="location-info">
+                            <i class="fas fa-map-marker-alt"></i>
+                            {{ photo.location }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- 评论区域 -->
+                    <div class="comments-section">
+                        <div class="comments-header">
+                            <h4><i class="far fa-comments"></i> 评论 ({{ comments|length }})</h4>
+                        </div>
+
+                        <div class="comments-list">
+                            {% if comments %}
+                                {% for comment in comments %}
+                                <div class="comment-item">
+                                    <div class="comment-avatar">
+                                        <i class="fas fa-user-circle"></i>
+                                    </div>
+                                    <div class="comment-content">
+                                        <div class="comment-header">
+                                            <span class="comment-user">{{ comment.user }}</span>
+                                            <span class="comment-time">{{ comment.created_at.strftime("%m-%d %H:%M") }}</span>
+                                        </div>
+                                        <p class="comment-text">{{ comment.content }}</p>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="no-comments">
+                                    <i class="far fa-comment-dots"></i>
+                                    <span>还没有评论，快来第一个发言吧～</span>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- 评论表单 -->
+                        <form class="comment-form" method="post" action="/album/timeline/comment">
+                            <input type="hidden" name="photo_id" value="{{ photo.id }}">
+                            <div class="form-group">
+                                <div class="input-with-icon">
+                                    <i class="fas fa-pen"></i>
+                                    <input type="text"
+                                           name="content"
+                                           placeholder="写下你的评论..."
+                                           required
+                                           class="comment-input">
+                                </div>
+                                <button type="submit" class="submit-btn">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% endfor %}
+        {% else %}
+            <!-- 空状态 -->
+            <div class="empty-timeline">
+                <div class="empty-illustration">
+                    <i class="fas fa-camera-retro"></i>
+                </div>
+                <h3>时光轴还是空的</h3>
+                <p>上传第一张照片，开启我们的时光之旅吧！</p>
+                <a href="/album/timeline/upload" class="start-btn">
+                    <i class="fas fa-plus"></i>
+                    上传第一张照片
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 图片查看器模态框 -->
+<div id="imageViewer" class="image-viewer">
+    <div class="viewer-content">
+        <span class="close-viewer" onclick="closeImageViewer()">&times;</span>
+        <img id="fullImage" src="" alt="全屏查看">
+    </div>
+</div>
+
+<script>
+// ========== 全局工具函数 ==========
+// Toast通知（保持不变）
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast-notification ${type}`;
+    toast.innerHTML = `
+        <div class="toast-content">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    document.body.appendChild(toast);
+
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// ========== 图片查看器 ==========
+function openImageViewer(imageUrl) {
+    const viewer = document.getElementById('imageViewer');
+    const fullImage = document.getElementById('fullImage');
+
+    fullImage.src = imageUrl;
+    viewer.style.display = 'flex';
+    document.body.style.overflow = 'hidden'; // 防止背景滚动
+}
+
+function closeImageViewer() {
+    const viewer = document.getElementById('imageViewer');
+    viewer.style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+// 点击模态框背景关闭
+document.getElementById('imageViewer').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeImageViewer();
+    }
+});
+
+// ========== 滚动动画效果 ==========
+function initScrollAnimation() {
+    const timelineItems = document.querySelectorAll('.timeline-item');
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, {
+        threshold: 0.1,
+        rootMargin: '0px 0px -100px 0px'
+    });
+
+    timelineItems.forEach(item => {
+        observer.observe(item);
+    });
+}
+
+// ========== 删除照片 ==========
+async function deletePhoto(photoId) {
+    if (!confirm('确定要删除这张照片吗？删除后无法恢复。')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/album/photo/${photoId}`, {
+            method: 'DELETE',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            showToast(data.message || '照片已删除', 'success');
+
+            // 淡出动画
+            const photoElement = document.getElementById(`photo-${photoId}`);
+            if (photoElement) {
+                photoElement.style.opacity = '0';
+                photoElement.style.transform = 'scale(0.8)';
+                photoElement.style.transition = 'all 0.4s ease';
+
+                setTimeout(() => {
+                    photoElement.remove();
+
+                    // 更新统计
+                    updatePhotoCount(-1);
+
+                    // 如果删除后没有内容，显示空状态
+                    if (!document.querySelector('.timeline-item')) {
+                        document.querySelector('.timeline-wrapper').innerHTML = `
+                            <div class="empty-timeline">
+                                <div class="empty-illustration">
+                                    <i class="fas fa-camera-retro"></i>
+                                </div>
+                                <h3>时光轴清空了</h3>
+                                <p>继续上传照片，记录美好时光吧！</p>
+                                <a href="/album/timeline/upload" class="start-btn">
+                                    <i class="fas fa-plus"></i>
+                                    上传照片
+                                </a>
+                            </div>
+                        `;
+                    }
+                }, 400);
+            }
+        } else {
+            const data = await response.json();
+            showToast(data.error || '删除失败', 'error');
+        }
+    } catch (error) {
+        console.error('删除失败:', error);
+        showToast('网络错误，请重试', 'error');
+    }
+}
+
+// 更新照片计数
+function updatePhotoCount(change) {
+    const countElement = document.querySelector('.photos-count');
+    if (countElement) {
+        const currentCount = parseInt(countElement.textContent.match(/\d+/)[0]) || 0;
+        countElement.textContent = countElement.textContent.replace(
+            /\d+/,
+            Math.max(0, currentCount + change)
+        );
+    }
+}
+
+// ========== 发表评论 ==========
+async function submitComment(event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const formData = new FormData(form);
+    const photoId = formData.get('photo_id');
+    const contentInput = form.querySelector('.comment-input');
+    const content = contentInput.value.trim();
+
+    if (!content) {
+        showToast('评论内容不能为空', 'error');
+        return;
+    }
+
+    // 禁用提交按钮
+    const submitBtn = form.querySelector('.submit-btn');
+    const originalHTML = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    submitBtn.disabled = true;
+
+    try {
+        const response = await fetch('/album/timeline/comment', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            showToast(data.message || '评论成功', 'success');
+            contentInput.value = '';
+            addCommentToDOM(photoId, data.comment);
+        } else {
+            showToast(data.error || '评论失败', 'error');
+        }
+    } catch (error) {
+        console.error('评论失败:', error);
+        showToast('网络错误，请重试', 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalHTML;
+    }
+}
+
+function addCommentToDOM(photoId, commentData) {
+    const commentsSection = document.querySelector(`#photo-${photoId} .comments-section`);
+    if (!commentsSection) return;
+
+    // 更新评论数量
+    const commentCountEl = commentsSection.querySelector('h4');
+    if (commentCountEl) {
+        const currentText = commentCountEl.textContent;
+        const newCount = (parseInt(currentText.match(/\((\d+)\)/)?.[1] || 0) + 1);
+        commentCountEl.innerHTML = `<i class="far fa-comments"></i> 评论 (${newCount})`;
+    }
+
+    // 移除"没有评论"提示
+    const noComments = commentsSection.querySelector('.no-comments');
+    if (noComments) noComments.remove();
+
+    // 创建新评论
+    const commentDiv = document.createElement('div');
+    commentDiv.className = 'comment-item';
+    commentDiv.innerHTML = `
+        <div class="comment-avatar">
+            <i class="fas fa-user-circle"></i>
+        </div>
+        <div class="comment-content">
+            <div class="comment-header">
+                <span class="comment-user">${commentData.user}</span>
+                <span class="comment-time">${formatCommentTime(commentData.created_at)}</span>
+            </div>
+            <p class="comment-text">${commentData.content}</p>
+        </div>
+    `;
+
+    // 插入到评论列表开头
+    const commentsList = commentsSection.querySelector('.comments-list');
+    commentsList.insertBefore(commentDiv, commentsList.firstChild);
+}
+
+function formatCommentTime(timeString) {
+    const now = new Date();
+    const commentTime = new Date(timeString);
+    const diffMs = now - commentTime;
+    const diffMins = Math.floor(diffMs / 60000);
+
+    if (diffMins < 1) return '刚刚';
+    if (diffMins < 60) return `${diffMins}分钟前`;
+
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}小时前`;
+
+    return commentTime.toLocaleDateString('zh-CN') + ' ' +
+           commentTime.toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'});
+}
+
+// ========== 事件监听 ==========
+document.addEventListener('DOMContentLoaded', function() {
+    // 初始化滚动动画
+    initScrollAnimation();
+
+    // 删除按钮事件
+    document.addEventListener('click', function(e) {
+        const deleteBtn = e.target.closest('.delete-btn');
+        if (deleteBtn) {
+            const photoId = deleteBtn.dataset.id;
+            deletePhoto(photoId);
+        }
+    });
+
+    // 评论表单事件
+    document.addEventListener('submit', function(e) {
+        if (e.target.classList.contains('comment-form')) {
+            e.preventDefault();
+            submitComment(e);
+        }
+    });
+
+    // 回车提交评论
+    document.addEventListener('keypress', function(e) {
+        if (e.target.classList.contains('comment-input') && e.key === 'Enter') {
+            e.preventDefault();
+            e.target.closest('form').dispatchEvent(new Event('submit'));
+        }
+    });
+});
+</script>
+
+<style>
+/* ========== 基础样式 ========== */
+.timeline-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* ========== 统计卡片 ========== */
+.timeline-stats-card {
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    border-radius: 20px;
+    padding: 30px;
+    color: white;
+    margin-bottom: 30px;
+    box-shadow: 0 15px 35px rgba(106, 17, 203, 0.2);
+}
+
+.stats-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.stats-header h1 {
+    font-size: 36px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+.stats-header p {
+    opacity: 0.9;
+    font-size: 16px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.stat-item {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    transition: transform 0.3s ease;
+}
+
+.stat-item:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.stat-icon {
+    font-size: 36px;
+    opacity: 0.9;
+}
+
+.stat-info {
+    flex: 1;
+}
+
+.stat-value {
+    font-size: 32px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+/* ========== 操作栏 ========== */
+.action-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 40px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.upload-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px 25px;
+    border-radius: 25px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.upload-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+}
+
+.user-welcome {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #667eea;
+    font-weight: 500;
+    font-size: 16px;
+}
+
+.user-welcome i {
+    font-size: 20px;
+}
+
+/* ========== 时间轴主体 ========== */
+.timeline-wrapper {
+    position: relative;
+    padding: 40px 0;
+}
+
+.timeline-line {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(to bottom, #667eea, #764ba2);
+    transform: translateX(-50%);
+    z-index: 1;
+}
+
+.timeline-month-node {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    margin: 40px 0 60px;
+}
+
+.month-badge {
+    display: inline-block;
+    background: white;
+    padding: 10px 25px;
+    border-radius: 50px;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+    border: 2px solid #667eea;
+}
+
+.month-year {
+    font-size: 12px;
+    color: #764ba2;
+    font-weight: 600;
+}
+
+.month-name {
+    font-size: 24px;
+    font-weight: bold;
+    color: #667eea;
+    margin-top: 5px;
+}
+
+/* ========== 时间轴项目 ========== */
+.timeline-item {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 60px;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.6s ease;
+}
+
+.timeline-item.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.timeline-left {
+    justify-content: flex-end;
+    padding-right: 50%;
+}
+
+.timeline-right {
+    justify-content: flex-start;
+    padding-left: 50%;
+}
+
+.timeline-node {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+    z-index: 2;
+    text-align: center;
+}
+
+.node-dot {
+    width: 20px;
+    height: 20px;
+    background: white;
+    border: 4px solid #667eea;
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+    margin: 0 auto 10px;
+}
+
+.node-date {
+    background: white;
+    padding: 5px 15px;
+    border-radius: 15px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #667eea;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.node-date small {
+    display: block;
+    font-size: 12px;
+    color: #888;
+    margin-top: 2px;
+}
+
+/* ========== 时间轴卡片 ========== */
+.timeline-card {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    max-width: 500px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.timeline-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background: linear-gradient(to right, #f8f9ff, #fff);
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.user-avatar {
+    width: 45px;
+    height: 45px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+}
+
+.user-details {
+    flex: 1;
+}
+
+.user-name {
+    font-weight: 600;
+    color: #333;
+    font-size: 16px;
+}
+
+.post-time {
+    font-size: 13px;
+    color: #888;
+    margin-top: 3px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.delete-btn {
+    background: #ff4757;
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.delete-btn:hover {
+    background: #ff2e43;
+    transform: scale(1.1);
+}
+
+/* ========== 照片区域 ========== */
+.photo-wrapper {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%; /* 16:9 比例 */
+    overflow: hidden;
+    background: #f8f9ff;
+}
+
+.photo-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    cursor: pointer;
+    transition: transform 0.5s ease;
+}
+
+.photo-image:hover {
+    transform: scale(1.05);
+}
+
+.no-photo-placeholder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 20px;
+    gap: 10px;
+}
+
+/* ========== 照片信息 ========== */
+.photo-info {
+    padding: 20px;
+}
+
+.memory-text {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #333;
+    margin-bottom: 15px;
+    padding: 15px;
+    background: #f8f9ff;
+    border-radius: 10px;
+    border-left: 4px solid #667eea;
+}
+
+.memory-text i {
+    color: #764ba2;
+    margin-right: 10px;
+}
+
+.location-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #666;
+    font-size: 14px;
+    padding: 10px 15px;
+    background: #f0f0f0;
+    border-radius: 8px;
+}
+
+.location-info i {
+    color: #ff4757;
+}
+
+/* ========== 评论区域 ========== */
+.comments-section {
+    padding: 20px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.comments-header {
+    margin-bottom: 20px;
+}
+
+.comments-header h4 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #333;
+    margin: 0;
+}
+
+.comments-list {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    padding-right: 10px;
+}
+
+/* 自定义滚动条 */
+.comments-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.comments-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.comments-list::-webkit-scrollbar-thumb {
+    background: #667eea;
+    border-radius: 3px;
+}
+
+.comment-item {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+    padding: 15px;
+    background: #f8f9ff;
+    border-radius: 12px;
+    transition: background 0.3s ease;
+}
+
+.comment-item:hover {
+    background: #f0f2ff;
+}
+
+.comment-avatar {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    background: #e6e9ff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #667eea;
+    font-size: 18px;
+}
+
+.comment-content {
+    flex: 1;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.comment-user {
+    font-weight: 600;
+    color: #333;
+}
+
+.comment-time {
+    font-size: 12px;
+    color: #888;
+}
+
+.comment-text {
+    margin: 0;
+    color: #555;
+    line-height: 1.5;
+}
+
+.no-comments {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: #aaa;
+    gap: 10px;
+    text-align: center;
+}
+
+.no-comments i {
+    font-size: 36px;
+}
+
+/* ========== 评论表单 ========== */
+.comment-form .form-group {
+    display: flex;
+    gap: 10px;
+}
+
+.input-with-icon {
+    flex: 1;
+    position: relative;
+}
+
+.input-with-icon i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #667eea;
+}
+
+.comment-input {
+    width: 100%;
+    padding: 12px 15px 12px 45px;
+    border: 2px solid #e0e0ff;
+    border-radius: 25px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.comment-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.submit-btn {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.submit-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.submit-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* ========== 空状态 ========== */
+.empty-timeline {
+    text-align: center;
+    padding: 80px 20px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    margin: 50px 0;
+}
+
+.empty-illustration {
+    font-size: 80px;
+    color: #667eea;
+    margin-bottom: 30px;
+    opacity: 0.7;
+}
+
+.empty-timeline h3 {
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 24px;
+}
+
+.empty-timeline p {
+    color: #666;
+    margin-bottom: 30px;
+    font-size: 16px;
+}
+
+.start-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px 30px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.start-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+}
+
+/* ========== 图片查看器 ========== */
+.image-viewer {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+}
+
+.viewer-content {
+    position: relative;
+    max-width: 90%;
+    max-height: 90%;
+}
+
+.viewer-content img {
+    max-width: 100%;
+    max-height: 90vh;
+    border-radius: 10px;
+}
+
+.close-viewer {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    color: white;
+    font-size: 30px;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.2);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s;
+}
+
+.close-viewer:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* ========== Toast 通知 ========== */
+.toast-notification {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: white;
+    border-radius: 15px;
+    padding: 15px 25px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+
+.toast-notification.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.toast-notification.success {
+    border-left: 5px solid #4CAF50;
+}
+
+.toast-notification.error {
+    border-left: 5px solid #F44336;
+}
+
+.toast-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 15px;
+}
+
+.toast-notification.success i {
+    color: #4CAF50;
+}
+
+.toast-notification.error i {
+    color: #F44336;
+}
+
+/* ========== 响应式设计 ========== */
+@media (max-width: 768px) {
+    .timeline-line {
+        left: 30px;
+    }
+
+    .timeline-left,
+    .timeline-right {
+        padding: 0 0 0 70px !important;
+        justify-content: flex-start !important;
+    }
+
+    .timeline-node {
+        left: 30px !important;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .timeline-stats-card {
+        padding: 20px;
+    }
+
+    .timeline-card {
+        width: 100%;
+    }
+
+    .action-section {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+
+    .upload-btn {
+        justify-content: center;
+    }
+
+    .user-welcome {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .timeline-container {
+        padding: 10px;
+    }
+
+    .stats-header h1 {
+        font-size: 28px;
+    }
+
+    .month-badge {
+        padding: 8px 20px;
+    }
+
+    .month-name {
+        font-size: 20px;
+    }
+}
+</style>
+{% endblock %}

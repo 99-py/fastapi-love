@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💕 登录 · 我们的恋爱时光</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 浮动爱心背景 */
+        .floating-hearts {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .heart {
+            position: absolute;
+            color: rgba(255, 105, 180, 0.3);
+            font-size: 24px;
+            animation: float 8s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.8;
+            }
+            90% {
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* 主登录卡片 */
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 25px;
+            padding: 50px 40px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 50px rgba(255, 105, 180, 0.2);
+            position: relative;
+            z-index: 2;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* 顶部装饰 */
+        .top-decoration {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(to right, #ff6b6b, #ff8e8e, #ff6b6b);
+        }
+
+        .heart-decoration {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 40px;
+            background: #ff6b6b;
+            clip-path: polygon(50% 0%, 100% 35%, 82% 100%, 50% 75%, 18% 100%, 0% 35%);
+            box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3);
+        }
+
+        /* 标题区域 */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .main-title {
+            font-size: 36px;
+            color: #ff6b6b;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .main-title i {
+            font-size: 40px;
+            animation: heartbeat 1.5s infinite;
+        }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            5% { transform: scale(1.1); }
+            10% { transform: scale(1); }
+            15% { transform: scale(1.1); }
+            20% { transform: scale(1); }
+            100% { transform: scale(1); }
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .welcome-text {
+            color: #ff8e8e;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
+        /* 表单样式 */
+        .login-form {
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ff6b6b;
+            font-weight: 600;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-label i {
+            font-size: 18px;
+        }
+
+        .input-with-icon {
+            position: relative;
+        }
+
+        .input-with-icon i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #ff8e8e;
+            font-size: 18px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 16px 20px 16px 50px;
+            border: 2px solid #ffe6e6;
+            border-radius: 15px;
+            font-size: 16px;
+            background: #fff;
+            transition: all 0.3s ease;
+            color: #333;
+            outline: none;
+        }
+
+        .form-input:focus {
+            border-color: #ff6b6b;
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.2);
+        }
+
+        .form-input::placeholder {
+            color: #ccc;
+        }
+
+        /* 登录按钮 */
+        .login-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(to right, #ff6b6b, #ff8e8e);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 10px;
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+        }
+
+        .login-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 25px rgba(255, 107, 107, 0.4);
+            background: linear-gradient(to right, #ff5252, #ff7b7b);
+        }
+
+        .login-btn:active {
+            transform: translateY(-1px);
+        }
+
+        /* 浪漫提示 */
+        .romantic-tip {
+            background: #fff5f7;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 25px;
+            border-left: 4px solid #ff6b6b;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .romantic-tip i {
+            color: #ff6b6b;
+            font-size: 20px;
+            margin-top: 2px;
+        }
+
+        .romantic-tip p {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* 错误提示 */
+        .error-message {
+            background: #ffe6e6;
+            color: #ff3333;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: fadeIn 0.5s ease;
+            border: 1px solid #ffcccc;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .error-message i {
+            font-size: 20px;
+        }
+
+        /* 底部装饰 */
+        .footer-decoration {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(to right, #ff6b6b, #ff8e8e, #ff6b6b);
+        }
+
+        .bottom-hearts {
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+        }
+
+        .bottom-hearts span {
+            display: block;
+            width: 12px;
+            height: 12px;
+            background: #ff6b6b;
+            clip-path: polygon(50% 0%, 100% 35%, 82% 100%, 50% 75%, 18% 100%, 0% 35%);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 40px 25px;
+                margin: 20px;
+                border-radius: 20px;
+            }
+
+            .main-title {
+                font-size: 30px;
+            }
+
+            .main-title i {
+                font-size: 34px;
+            }
+
+            .form-input {
+                padding: 14px 18px 14px 45px;
+            }
+
+            .login-btn {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 浮动爱心背景 -->
+    <div class="floating-hearts" id="floatingHearts"></div>
+
+    <!-- 登录卡片 -->
+    <div class="login-container">
+        <!-- 顶部装饰 -->
+        <div class="top-decoration"></div>
+        <div class="heart-decoration"></div>
+
+        <!-- 标题区域 -->
+        <div class="header">
+            <h1 class="main-title">
+                <i class="fas fa-heart"></i>
+                恋爱时光
+            </h1>
+            <p class="subtitle">专属我们的甜蜜空间</p>
+            <p class="welcome-text">💖 欢迎回来，亲爱的</p>
+        </div>
+
+        <!-- 登录表单 -->
+        <form method="post" action="/login" class="login-form">
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-user-circle"></i>
+                    你的名字
+                </label>
+                <div class="input-with-icon">
+                    <i class="fas fa-user"></i>
+                    <input
+                        type="text"
+                        name="username"
+                        placeholder="输入你的专属昵称"
+                        class="form-input"
+                        required
+                        autocomplete="off"
+                    >
+                </div>
+            </div>
+
+            <button type="submit" class="login-btn">
+                <i class="fas fa-heartbeat"></i>
+                进入我们的世界
+            </button>
+        </form>
+
+        <!-- 浪漫提示 -->
+        <div class="romantic-tip">
+            <i class="fas fa-lightbulb"></i>
+            <p>今天是我们相遇的第 <span id="daysCount">0</span> 天，登录后可以查看我们的专属回忆和待办事项～</p>
+        </div>
+
+        <!-- 错误提示 -->
+        {% if error %}
+        <div class="error-message">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>{{ error }}</span>
+        </div>
+        {% endif %}
+
+        <!-- 底部装饰 -->
+        <div class="footer-decoration"></div>
+        <div class="bottom-hearts">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+
+    <script>
+        // 生成随机浮动爱心
+        function createFloatingHearts() {
+            const container = document.getElementById('floatingHearts');
+            const heartCount = 20;
+
+            for (let i = 0; i < heartCount; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'heart';
+                heart.innerHTML = '❤';
+
+                // 随机位置
+                heart.style.left = Math.random() * 100 + '%';
+
+                // 随机大小
+                const size = Math.random() * 20 + 15;
+                heart.style.fontSize = size + 'px';
+
+                // 随机颜色
+                const colors = ['#ff6b6b', '#ff8e8e', '#ff9a9e', '#fad0c4'];
+                heart.style.color = colors[Math.floor(Math.random() * colors.length)];
+
+                // 随机动画延迟和持续时间
+                heart.style.animationDelay = Math.random() * 5 + 's';
+                heart.style.animationDuration = (Math.random() * 5 + 8) + 's';
+
+                container.appendChild(heart);
+            }
+        }
+
+        // 计算相遇天数
+        function calculateDaysTogether() {
+            // 这里可以设置你们相遇的日期，格式：YYYY-MM-DD
+            const meetDate = new Date('2024-11-05'); // 修改为你们的相遇日期
+
+            const today = new Date();
+            const timeDiff = today.getTime() - meetDate.getTime();
+            const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+            document.getElementById('daysCount').textContent = daysDiff;
+        }
+
+        // 输入框聚焦效果
+        document.addEventListener('DOMContentLoaded', function() {
+            createFloatingHearts();
+            calculateDaysTogether();
+
+            const input = document.querySelector('.form-input');
+            const loginBtn = document.querySelector('.login-btn');
+
+            // 输入框聚焦时添加特效
+            input.addEventListener('focus', function() {
+                this.style.backgroundColor = '#fff9f9';
+            });
+
+            input.addEventListener('blur', function() {
+                this.style.backgroundColor = '#fff';
+            });
+
+            // 表单提交时的简单验证
+            document.querySelector('.login-form').addEventListener('submit', function(e) {
+                const username = input.value.trim();
+
+                if (!username) {
+                    e.preventDefault();
+                    input.style.borderColor = '#ff3333';
+                    input.style.boxShadow = '0 0 0 3px rgba(255, 51, 51, 0.2)';
+
+                    // 显示错误提示
+                    if (!document.querySelector('.error-message')) {
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'error-message';
+                        errorDiv.innerHTML = `
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span>请输入你的名字哦～</span>
+                        `;
+                        document.querySelector('.login-form').appendChild(errorDiv);
+
+                        // 3秒后移除错误提示
+                        setTimeout(() => {
+                            errorDiv.remove();
+                            input.style.borderColor = '#ffe6e6';
+                            input.style.boxShadow = 'none';
+                        }, 3000);
+                    }
+                }
+            });
+
+            // 添加一些浪漫的提示语
+            const romanticMessages = [
+                "每一天都因你而特别 💕",
+                "我们的故事，从这里开始 ✨",
+                "爱你是我最甜蜜的习惯 🍬",
+                "一起创造更多美好回忆吧 🌟"
+            ];
+
+            const welcomeText = document.querySelector('.welcome-text');
+            let messageIndex = 0;
+
+            // 每5秒更换一次欢迎语
+            setInterval(() => {
+                messageIndex = (messageIndex + 1) % romanticMessages.length;
+                welcomeText.innerHTML = `💖 ${romanticMessages[messageIndex]}`;
+
+                // 添加淡入淡出效果
+                welcomeText.style.opacity = 0;
+                setTimeout(() => {
+                    welcomeText.style.transition = 'opacity 0.5s ease';
+                    welcomeText.style.opacity = 1;
+                }, 300);
+            }, 5000);
+        });
+    </script>
+</body>
+</html>

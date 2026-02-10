@@ -1,0 +1,702 @@
+<!-- app/templates/index.html -->
+{% extends "base.html" %}
+
+{% block title %}💖 我们的恋爱 Todo{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* 首页特定样式 */
+    .welcome-section {
+        text-align: center;
+        margin-bottom: 40px;
+        padding: 30px;
+        background: linear-gradient(135deg, rgba(255, 107, 107, 0.1), rgba(255, 142, 83, 0.1));
+        border-radius: 15px;
+    }
+
+    .days-counter {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #ff6b6b;
+        margin: 20px 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .greeting-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        border-left: 4px solid #ff6b6b;
+    }
+
+    .greeting-content {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        color: #333;
+    }
+
+    /* 待办表单 */
+    .todo-form {
+        background: linear-gradient(135deg, #f8f9ff, #f0f4ff);
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+    }
+
+    .todo-input-group {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+
+    .todo-input {
+        flex: 1;
+        padding: 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .todo-input:focus {
+        outline: none;
+        border-color: #ff6b6b;
+        box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+    }
+
+    .todo-submit-btn {
+        background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .todo-submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+    }
+
+    /* 待办列表 */
+    .todos-container {
+        margin-top: 20px;
+    }
+
+    .todo-item {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        border-left: 4px solid #ff6b6b;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .todo-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .todo-item.done {
+        border-left-color: #06d6a0;
+        opacity: 0.8;
+    }
+
+    .todo-checkbox {
+        width: 22px;
+        height: 22px;
+        cursor: pointer;
+        accent-color: #06d6a0;
+        flex-shrink: 0;
+    }
+
+    .todo-content {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .todo-text {
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+    }
+
+    .todo-item.done .todo-text {
+        text-decoration: line-through;
+        color: #888;
+    }
+
+    .todo-actions {
+        display: flex;
+        gap: 8px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .todo-item:hover .todo-actions {
+        opacity: 1;
+    }
+
+    .todo-btn {
+        padding: 8px 12px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .todo-btn.complete {
+        background: #06d6a0;
+        color: white;
+    }
+
+    .todo-btn.complete:hover {
+        background: #05a37e;
+    }
+
+    .todo-btn.delete {
+        background: #ef4444;
+        color: white;
+    }
+
+    .todo-btn.delete:hover {
+        background: #dc2626;
+    }
+
+    .todo-btn.undo {
+        background: #3b82f6;
+        color: white;
+    }
+
+    .todo-btn.undo:hover {
+        background: #2563eb;
+    }
+
+    /* 筛选和统计 */
+    .todos-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .todos-filters {
+        display: flex;
+        gap: 10px;
+    }
+
+    .filter-btn {
+        padding: 8px 16px;
+        border: 2px solid #e0e0e0;
+        background: white;
+        border-radius: 20px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .filter-btn.active {
+        background: #ff6b6b;
+        color: white;
+        border-color: #ff6b6b;
+    }
+
+    .filter-btn:hover:not(.active) {
+        border-color: #ff6b6b;
+        color: #ff6b6b;
+    }
+
+    .todos-stats {
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    /* 空状态 */
+    .todos-empty {
+        text-align: center;
+        padding: 60px 20px;
+        color: #888;
+    }
+
+    .todos-empty-icon {
+        font-size: 4rem;
+        color: #e0e0e0;
+        margin-bottom: 20px;
+    }
+
+    /* 角色特定样式 */
+    body.her {
+        background: linear-gradient(135deg, #fff5f8 0%, #ffeef4 100%);
+    }
+
+    body.her .page-header h1 {
+        color: #e75480;
+    }
+
+    body.her .greeting-card {
+        background: #ffe4ec;
+    }
+
+    body.me {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    }
+
+    body.me .greeting-card {
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="welcome-section">
+    <h1><i class="fas fa-heart"></i> 我们的恋爱 Todo</h1>
+    <div id="days" class="days-counter">
+        <i class="fas fa-heartbeat"></i>
+        <span>💞 计算恋爱天数中...</span>
+    </div>
+</div>
+
+{% if greeting %}
+<div class="greeting-card">
+    <div class="greeting-content">
+        {{ greeting }}
+    </div>
+</div>
+{% endif %}
+
+<div class="todo-form">
+    <form id="todo-form">
+        <div class="todo-input-group">
+            <input type="text"
+                   id="todo-input"
+                   class="todo-input"
+                   placeholder="写下想和TA一起做的小事..."
+                   required>
+            <button type="submit" class="todo-submit-btn">
+                <i class="fas fa-plus"></i> 添加
+            </button>
+        </div>
+    </form>
+</div>
+
+<div class="todos-controls">
+    <div class="todos-filters">
+        <button class="filter-btn active" data-filter="all">全部</button>
+        <button class="filter-btn" data-filter="active">进行中</button>
+        <button class="filter-btn" data-filter="completed">已完成</button>
+    </div>
+
+    <div class="todos-stats">
+        <span id="todo-count">0</span>
+<!--        <span id="completed-count">0</span> 个已完成-->
+    </div>
+</div>
+
+<div id="todos-container" class="todos-container">
+    <!-- 待办事项将通过 JavaScript 动态生成 -->
+</div>
+
+<div id="todos-empty" class="card todos-empty" style="display: none;">
+    <i class="fas fa-clipboard-check todos-empty-icon"></i>
+    <h3>还没有待办事项</h3>
+    <p>添加一些想和TA一起完成的小目标吧！</p>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Toast 通知组件（与动态页面保持一致）
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast-notification ${type}`;
+        toast.innerHTML = `
+            <div class="toast-content">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        document.body.appendChild(toast);
+
+        setTimeout(() => toast.classList.add('show'), 10);
+
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    // 全局变量
+    let currentFilter = 'all';
+    let todosData = [];
+
+    // 加载恋爱天数
+    async function loadDays() {
+        try {
+            const res = await fetch("/love/days");
+            const data = await res.json();
+            const daysElement = document.getElementById('days');
+            if (daysElement) {
+                daysElement.innerHTML = `
+                    <i class="fas fa-heartbeat"></i>
+                    <span>💞 我们已经在一起 ${data.days} 天了</span>
+                `;
+            }
+        } catch (error) {
+            console.error("加载恋爱天数失败:", error);
+        }
+    }
+
+    // 加载待办事项
+    async function loadTodos() {
+        try {
+            const res = await fetch('/todos/');
+
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+
+            allTodosData = await res.json();
+            applyFilter();
+
+        } catch (error) {
+            console.error("加载待办事项失败:", error);
+            showToast('加载待办事项失败', 'error');
+        }
+    }
+    function applyFilter() {
+        if (currentFilter === 'all') {
+            filteredTodosData = [...allTodosData]; // 复制数组
+        } else if (currentFilter === 'active') {
+            filteredTodosData = allTodosData.filter(todo => !todo.done);
+        } else if (currentFilter === 'completed') {
+            filteredTodosData = allTodosData.filter(todo => todo.done);
+        }
+
+        renderTodos(filteredTodosData);
+        updateStats(allTodosData);
+    }
+
+    // 渲染待办事项
+    function renderTodos(todos) {
+        const container = document.getElementById('todos-container');
+        const emptyState = document.getElementById('todos-empty');
+
+        if (todos.length === 0) {
+            container.style.display = 'none';
+            emptyState.style.display = 'block';
+            return;
+        }
+
+        container.style.display = 'block';
+        emptyState.style.display = 'none';
+
+        container.innerHTML = '';
+
+        todos.forEach(todo => {
+            const todoElement = createTodoElement(todo);
+            container.appendChild(todoElement);
+        });
+    }
+
+    // 创建单个待办事项元素
+    function createTodoElement(todo) {
+        const div = document.createElement('div');
+        div.className = `todo-item ${todo.done ? 'done' : ''}`;
+        div.id = `todo-${todo.id}`;
+
+        const actionButton = todo.done ? `
+            <button class="todo-btn undo" onclick="undoTodo(${todo.id})">
+                <i class="fas fa-undo"></i> 取消完成
+            </button>
+        ` : `
+            <button class="todo-btn complete" onclick="completeTodo(${todo.id})">
+                <i class="fas fa-check"></i> 完成
+            </button>
+        `;
+
+        div.innerHTML = `
+            <input type="checkbox" class="todo-checkbox" ${todo.done ? 'checked' : ''}
+                   onchange="toggleTodo(${todo.id}, ${!todo.done})">
+            <div class="todo-content">
+                <span class="todo-text">${todo.title}</span>
+                <div class="todo-actions">
+                    ${actionButton}
+                    <button class="todo-btn delete" onclick="deleteTodo(${todo.id})">
+                        <i class="fas fa-trash"></i> 删除
+                    </button>
+                </div>
+            </div>
+        `;
+
+        return div;
+    }
+
+    // 更新统计信息
+    function updateStats(todos) {
+        const total = todos.length;
+        const completed = todos.filter(todo => todo.done).length;
+        const active = total - completed;
+
+        // 根据当前筛选条件更新显示
+        let displayText;
+        if (currentFilter === 'all') {
+            displayText = `${total} 个待办 (${active} 进行中, ${completed} 已完成)`;
+        } else if (currentFilter === 'active') {
+            displayText = `${active} 个进行中的待办`;
+        } else if (currentFilter === 'completed') {
+            displayText = `${completed} 个已完成的待办`;
+        }
+
+        document.getElementById('todo-count').textContent = displayText;
+    }
+
+    // 添加待办事项
+    // 添加待办事项（需要刷新所有数据）
+    async function addTodo() {
+        const input = document.getElementById('todo-input');
+        const title = input.value.trim();
+
+        if (!title) {
+            showToast('请输入待办事项内容', 'error');
+            return;
+        }
+
+        try {
+            const response = await fetch('/todos/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ title })
+            });
+
+            if (response.ok) {
+                input.value = '';
+                showToast('待办事项已添加', 'success');
+                await loadTodos(); // 重新加载所有数据
+            } else {
+                const data = await response.json();
+                showToast(data.detail || '添加失败', 'error');
+            }
+        } catch (error) {
+            console.error("添加待办事项失败:", error);
+            showToast('添加失败，请重试', 'error');
+        }
+    }
+
+    // 标记待办事项为完成（需要刷新所有数据）
+    async function completeTodo(todoId) {
+        try {
+            const response = await fetch(`/todos/${todoId}/done`, {
+                method: 'PUT',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (response.ok) {
+                showToast('待办事项已完成', 'success');
+                await loadTodos(); // 重新加载所有数据
+            } else {
+                const data = await response.json();
+                showToast(data.detail || '操作失败', 'error');
+            }
+        } catch (error) {
+            console.error("标记完成失败:", error);
+            showToast('操作失败，请重试', 'error');
+            await loadTodos(); // 重新加载以恢复状态
+        }
+    }
+
+    // 取消完成待办事项（需要刷新所有数据）
+    async function undoTodo(todoId) {
+        try {
+            const response = await fetch(`/todos/${todoId}/undo`, {
+                method: 'PUT',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (response.ok) {
+                showToast('已取消完成', 'success');
+                await loadTodos(); // 重新加载所有数据
+            } else {
+                const data = await response.json();
+                showToast(data.detail || '操作失败', 'error');
+            }
+        } catch (error) {
+            console.error("取消完成失败:", error);
+            showToast('操作失败，请重试', 'error');
+        }
+    }
+
+    // 切换待办事项状态
+    async function toggleTodo(todoId, done) {
+        if (done) {
+            await completeTodo(todoId);
+        } else {
+            await undoTodo(todoId);
+        }
+    }
+
+    // 删除待办事项（需要刷新所有数据）
+    async function deleteTodo(todoId) {
+        if (!confirm('确定要删除这个待办事项吗？')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/todos/${todoId}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (response.ok) {
+                showToast('待办事项已删除', 'success');
+                await loadTodos(); // 重新加载所有数据
+            } else {
+                const data = await response.json();
+                showToast(data.detail || '删除失败', 'error');
+            }
+        } catch (error) {
+            console.error("删除待办事项失败:", error);
+            showToast('删除失败，请重试', 'error');
+        }
+    }
+
+    // 筛选待办事项（修改版）
+    function filterTodos(filter) {
+        currentFilter = filter;
+
+        // 更新筛选按钮状态
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        event.target.classList.add('active');
+
+        // 应用筛选条件
+        applyFilter();
+    }
+
+    // 事件监听器
+    document.getElementById('todo-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        addTodo();
+    });
+
+    document.getElementById('todo-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            addTodo();
+        }
+    });
+
+    // 筛选按钮事件委托
+    document.querySelector('.todos-filters').addEventListener('click', (e) => {
+        if (e.target.classList.contains('filter-btn')) {
+            filterTodos(e.target.dataset.filter);
+        }
+    });
+
+    // 初始化
+    document.addEventListener('DOMContentLoaded', function() {
+        loadDays();
+        loadTodos();
+
+        // 初始化筛选按钮状态
+        document.querySelector('[data-filter="all"]').classList.add('active');
+    });
+
+    // 添加 undo 路由（如果没有的话）
+    // 在 app/api/todo.py 中添加：
+    /*
+    @router.put("/{todo_id}/undo")
+    def mark_todo_undo(
+        todo_id: int,
+        db: Session = Depends(get_db),
+        user: User = Depends(get_current_user)
+    ):
+        todo = db.query(Todo).filter(
+            Todo.id == todo_id,
+            Todo.owner_id == user.id
+        ).first()
+
+        if not todo:
+            raise HTTPException(status_code=404, detail="待办事项不存在")
+
+        todo.done = False
+        db.commit()
+        db.refresh(todo)
+        return todo
+    */
+</script>
+
+<style>
+    /* Toast 通知样式（与动态页面保持一致） */
+    .toast-notification {
+        position: fixed;
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+        padding: 15px 25px;
+        z-index: 10000;
+        opacity: 0;
+        transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    }
+
+    .toast-notification.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    .toast-notification.success {
+        border-left: 4px solid #4CAF50;
+    }
+
+    .toast-notification.error {
+        border-left: 4px solid #F44336;
+    }
+
+    .toast-content {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1rem;
+    }
+
+    .toast-notification.success .toast-content i {
+        color: #4CAF50;
+    }
+
+    .toast-notification.error .toast-content i {
+        color: #F44336;
+    }
+</style>
+{% endblock %}

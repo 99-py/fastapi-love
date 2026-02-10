@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}📅 时间轴相册{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>📅 时间轴相册</h1>
+    <p class="subtitle">照片会按拍摄日期自动整理</p>
+</div>
+
+<div class="empty-state">
+    <p>这里还没有照片</p>
+    <p>选择一个节日，记录那一天的特别瞬间 🎉</p>
+    <button class="btn-primary">📷 上传照片</button>
+</div>
+
+<a href="/album" class="back-link">⬅ 返回相册</a>
+{% endblock %}

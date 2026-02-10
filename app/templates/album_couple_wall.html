@@ -1,0 +1,1329 @@
+<!-- app/templates/couple/wall.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="couple-container">
+    <!-- 页面标题和统计 -->
+    <div class="page-header">
+        <h1><i class="fas fa-heart"></i> 我们的合照</h1>
+        <div>
+            <button class="btn btn-primary" onclick="showUploadForm()">
+                <i class="fas fa-plus"></i> 上传新照片
+            </button>
+        </div>
+    </div>
+
+    <!-- 统计卡片 -->
+    <div class="stats-cards">
+        <div class="stat-card">
+            <div class="stat-number">{{ total }}</div>
+            <div class="stat-label">合照总数</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ photos|selectattr("is_favorite")|list|length }}</div>
+            <div class="stat-label">已收藏</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{% if memory %}1{% else %}0{% endif %}</div>
+            <div class="stat-label">今日回忆</div>
+        </div>
+    </div>
+
+    <!-- 今日回忆 -->
+    {% if memory %}
+    <div class="memory-card">
+        <div class="memory-title">
+            <i class="fas fa-history"></i> 今日回忆
+        </div>
+        <div class="memory-content">
+            {% if memory.image_url %}
+            <div class="memory-image">
+                <!-- 图片应该在这里 -->
+            </div>
+            {% endif %}
+            <div class="memory-text">
+                <h4>{{ memory.caption or "美好的回忆" }}</h4>
+                <p>{{ memory.memory or "看看今天有什么特别的回忆吧～" }}</p>
+                {% if memory.location %}
+                <p><i class="fas fa-map-marker-alt"></i> {{ memory.location }}</p>
+                {% endif %}
+                <div class="memory-date">
+                    {{ memory.created_at.strftime("%Y年%m月%d日") if memory.created_at else "" }}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 上传表单（初始隐藏） -->
+    <div id="upload-form-container" class="upload-form-container" style="display: none;">
+        <h3 style="margin-bottom: 20px; color: #333;">
+            <i class="fas fa-cloud-upload-alt"></i> 上传合照
+        </h3>
+        <form id="upload-form" enctype="multipart/form-data" class="upload-form-grid">
+            <div class="form-group full-width">
+                <div class="file-upload-area" id="drop-area">
+                    <div class="upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <div class="upload-text">点击选择照片，或拖拽到此处</div>
+                    <div class="upload-hint">支持 JPG, PNG, GIF, WebP 格式，最大 5MB</div>
+                    <input type="file" id="file-input" accept="image/*" style="display: none;">
+                </div>
+                <div class="file-preview" id="file-preview"></div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="caption">
+                    <i class="fas fa-quote-left"></i> 照片描述
+                </label>
+                <input type="text" id="caption" class="form-control" placeholder="为照片添加一个有趣的描述...">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="location">
+                    <i class="fas fa-map-marker-alt"></i> 拍摄地点
+                </label>
+                <input type="text" id="location" class="form-control" placeholder="在哪里拍摄的？">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="taken_date">
+                    <i class="far fa-calendar"></i> 拍摄日期
+                </label>
+                <input type="date" id="taken_date" class="form-control">
+            </div>
+
+            <div class="form-group full-width">
+                <label class="form-label" for="memory">
+                    <i class="fas fa-comment-dots"></i> 回忆故事
+                </label>
+                <textarea id="memory" class="form-control" rows="3"
+                          placeholder="记录下关于这张照片的美好回忆..."></textarea>
+            </div>
+
+            <div class="form-group full-width" style="text-align: center;">
+                <button type="button" class="btn btn-secondary" onclick="hideUploadForm()"
+                        style="margin-right: 10px;">
+                    <i class="fas fa-times"></i> 取消
+                </button>
+                <button type="submit" class="btn btn-primary" id="upload-btn">
+                    <i class="fas fa-upload"></i> 上传照片
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- 筛选按钮 -->
+    <div class="filter-buttons">
+        <button class="filter-btn active" onclick="filterPhotos('all')">全部照片</button>
+        <button class="filter-btn" onclick="filterPhotos('favorites')"><i class="fas fa-star"></i> 已收藏</button>
+        <button class="filter-btn" onclick="filterPhotos('recent')"><i class="fas fa-clock"></i> 最近上传</button>
+    </div>
+
+    <!-- 照片墙 -->
+    <div id="photo-wall" class="photo-wall">
+        {% for photo in photos %}
+        <div class="photo-item" data-id="{{ photo.id }}" data-favorite="{{ photo.is_favorite|lower }}">
+            <!-- 图片标签在这里 -->
+            {% if photo.image_url %}
+            <img src="{{ photo.image_url }}" alt="{{ photo.caption or '合照' }}"
+                 class="photo-image" onclick="viewImage('{{ photo.image_url }}')">
+            {% endif %}
+
+            <div class="photo-overlay"></div>
+
+            <div class="photo-actions">
+                <button class="action-btn favorite {% if photo.is_favorite %}active{% endif %}"
+                        onclick="toggleFavorite({{ photo.id }}, this)">
+                    <i class="fas fa-star"></i>
+                </button>
+                <button class="action-btn" onclick="deletePhoto({{ photo.id }})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+
+            <div class="photo-info">
+                <div class="photo-caption">{{ photo.caption or "美好的回忆" }}</div>
+                {% if photo.memory %}
+                <div class="photo-meta">{{ photo.memory|truncate(50) }}</div>
+                {% endif %}
+                {% if photo.location %}
+                <div class="photo-location"><i class="fas fa-map-marker-alt"></i> {{ photo.location }}</div>
+                {% endif %}
+                <div class="photo-date">{{ photo.created_at.strftime("%Y.%m.%d") if photo.created_at else "" }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- 加载更多 -->
+    {% if total > 20 %}
+    <div class="load-more">
+        <button class="btn-load-more" onclick="loadMore()" id="load-more-btn">
+            <i class="fas fa-spinner fa-spin" style="display: none;"></i>
+            <span>加载更多照片</span>
+        </button>
+    </div>
+    {% endif %}
+
+    <!-- 空状态 -->
+    {% if not photos %}
+    <div id="empty-state" class="empty-state">
+        <div class="empty-state-icon">
+            <i class="fas fa-images"></i>
+        </div>
+        <h3>还没有合照</h3>
+        <p>上传第一张照片，开始记录你们的甜蜜时光吧！</p>
+        <button class="btn btn-primary" onclick="showUploadForm()" style="margin-top: 20px;">
+            <i class="fas fa-plus"></i> 上传第一张照片
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+<!-- 图片查看模态框 -->
+<div class="modal" id="image-modal" onclick="closeModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+        <img id="modal-image" class="modal-image" src="" alt="">
+        <div class="modal-info" id="modal-info"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentPage = 1;
+    let currentFilter = 'all';
+    let isLoading = false;
+    let hasMore = {{ "true" if total > 20 else "false" }};
+
+// 工具函数
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast-notification ${type}`;
+    toast.innerHTML = `
+        <div class="toast-content">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    document.body.appendChild(toast);
+
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// 显示/隐藏上传表单
+function showUploadForm() {
+    document.getElementById('upload-form-container').style.display = 'block';
+    // 设置默认日期为今天
+    const today = new Date().toISOString().split('T')[0];
+    const takenDateInput = document.getElementById('taken_date');
+    if (takenDateInput) {
+        takenDateInput.value = today;
+    }
+}
+
+function hideUploadForm() {
+    document.getElementById('upload-form-container').style.display = 'none';
+    resetUploadForm();
+}
+
+// 重置上传表单
+function resetUploadForm() {
+    document.getElementById('upload-form').reset();
+    document.getElementById('file-preview').innerHTML = '';
+    const dropArea = document.getElementById('drop-area');
+    if (dropArea) {
+        const uploadText = dropArea.querySelector('.upload-text');
+        const uploadIcon = dropArea.querySelector('.upload-icon');
+        if (uploadText) uploadText.textContent = '点击选择照片，或拖拽到此处';
+        if (uploadIcon) uploadIcon.innerHTML = '<i class="fas fa-cloud-upload-alt"></i>';
+    }
+}
+
+// 图片预览
+function previewImage(file) {
+    const preview = document.getElementById('file-preview');
+    const dropArea = document.getElementById('drop-area');
+
+    if (file && preview && dropArea) {
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            preview.innerHTML = `
+                <img src="${e.target.result}" alt="预览" style="max-width: 100%; max-height: 300px; border-radius: 10px;">
+            `;
+            const uploadText = dropArea.querySelector('.upload-text');
+            const uploadIcon = dropArea.querySelector('.upload-icon');
+            if (uploadText) uploadText.textContent = file.name;
+            if (uploadIcon) uploadIcon.innerHTML = '<i class="fas fa-check-circle" style="color: #4CAF50;"></i>';
+        };
+
+        reader.readAsDataURL(file);
+    } else {
+        if (preview) preview.innerHTML = '';
+        if (dropArea) {
+            const uploadText = dropArea.querySelector('.upload-text');
+            const uploadIcon = dropArea.querySelector('.upload-icon');
+            if (uploadText) uploadText.textContent = '点击选择照片，或拖拽到此处';
+            if (uploadIcon) uploadIcon.innerHTML = '<i class="fas fa-cloud-upload-alt"></i>';
+        }
+    }
+}
+
+// 文件上传处理
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('file-input');
+    const dropArea = document.getElementById('drop-area');
+    const uploadForm = document.getElementById('upload-form');
+
+    // 点击选择文件
+    if (dropArea && fileInput) {
+        dropArea.addEventListener('click', () => fileInput.click());
+    }
+
+    // 文件选择变化
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            if (this.files[0]) {
+                previewImage(this.files[0]);
+            }
+        });
+    }
+
+    // 拖拽上传
+    if (dropArea) {
+        dropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropArea.classList.add('dragover');
+        });
+
+        dropArea.addEventListener('dragleave', () => {
+            dropArea.classList.remove('dragover');
+        });
+
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.classList.remove('dragover');
+
+            if (e.dataTransfer.files[0]) {
+                if (fileInput) {
+                    fileInput.files = e.dataTransfer.files;
+                }
+                previewImage(e.dataTransfer.files[0]);
+            }
+        });
+    }
+
+    // 表单提交
+    if (uploadForm) {
+        uploadForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const file = fileInput ? fileInput.files[0] : null;
+            const caption = document.getElementById('caption') ? document.getElementById('caption').value.trim() : '';
+            const memory = document.getElementById('memory') ? document.getElementById('memory').value.trim() : '';
+            const location = document.getElementById('location') ? document.getElementById('location').value.trim() : '';
+            const takenDate = document.getElementById('taken_date') ? document.getElementById('taken_date').value : '';
+
+            // 验证
+            if (!file) {
+                showToast('请选择照片', 'error');
+                return;
+            }
+
+            // 验证文件类型
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+                showToast('请选择图片文件（支持 JPG, PNG, GIF, WebP）', 'error');
+                return;
+            }
+
+            // 验证文件大小（5MB）
+            const maxSize = 5 * 1024 * 1024;
+            if (file.size > maxSize) {
+                showToast('图片大小不能超过 5MB', 'error');
+                return;
+            }
+
+            // 创建 FormData
+            const formData = new FormData();
+            formData.append('file', file);
+            if (caption) formData.append('caption', caption);
+            if (memory) formData.append('memory', memory);
+            if (location) formData.append('location', location);
+            if (takenDate) formData.append('taken_date', takenDate);
+
+            // 上传按钮状态
+            const uploadBtn = document.getElementById('upload-btn');
+            const originalText = uploadBtn.innerHTML;
+            uploadBtn.disabled = true;
+            uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 上传中...';
+
+            try {
+                const response = await fetch('/couple/upload', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    showToast(data.message || '上传成功！', 'success');
+
+                    // 添加到照片墙
+                    addPhotoToWall(data.photo);
+
+                    // 隐藏表单
+                    hideUploadForm();
+
+                    // 更新统计
+                    updateStats(1, 0);
+
+                    // 隐藏空状态
+                    const emptyState = document.getElementById('empty-state');
+                    if (emptyState) emptyState.style.display = 'none';
+                } else {
+                    showToast(data.error || '上传失败', 'error');
+                }
+            } catch (error) {
+                console.error('上传失败:', error);
+                showToast('网络错误，请重试', 'error');
+            } finally {
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = originalText;
+            }
+        });
+    }
+});
+
+// 添加照片到照片墙
+function addPhotoToWall(photo) {
+    const photoWall = document.getElementById('photo-wall');
+    if (!photoWall) return;
+
+    const photoItem = document.createElement('div');
+    photoItem.className = 'photo-item';
+    photoItem.setAttribute('data-id', photo.id);
+    photoItem.setAttribute('data-favorite', photo.is_favorite || 'false');
+
+    // 转义特殊字符，防止XSS攻击
+    const safeCaption = photo.caption ? photo.caption.replace(/[&<>"']/g, function(m) {
+        return {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        }[m];
+    }) : '';
+
+    const safeMemory = photo.memory ? photo.memory.replace(/[&<>"']/g, function(m) {
+        return {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        }[m];
+    }) : '';
+
+    const safeLocation = photo.location ? photo.location.replace(/[&<>"']/g, function(m) {
+        return {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        }[m];
+    }) : '';
+
+    const imageUrl = photo.image_url || '';
+    const displayDate = photo.created_at ? new Date(photo.created_at).toLocaleDateString('zh-CN') : '';
+
+    photoItem.innerHTML = `
+        <img src="${imageUrl}" alt="${safeCaption || '合照'}"
+             class="photo-image" onclick="viewImage('${imageUrl.replace(/'/g, "\\'")}')">
+
+        <div class="photo-overlay"></div>
+
+        <div class="photo-actions">
+            <button class="action-btn favorite ${photo.is_favorite ? 'active' : ''}" onclick="toggleFavorite(${photo.id}, this)">
+                <i class="fas fa-star"></i>
+            </button>
+            <button class="action-btn" onclick="deletePhoto(${photo.id})">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+
+        <div class="photo-info">
+            <div class="photo-caption">
+                ${safeCaption || '美好的回忆'}
+            </div>
+            ${safeMemory ? `<div class="photo-meta">${safeMemory.substring(0, 50)}${safeMemory.length > 50 ? '...' : ''}</div>` : ''}
+            ${safeLocation ? `<div class="photo-location"><i class="fas fa-map-marker-alt"></i> ${safeLocation}</div>` : ''}
+            <div class="photo-date">
+                ${displayDate}
+            </div>
+        </div>
+    `;
+
+    // 添加到开头
+    if (photoWall.children.length > 0) {
+        photoWall.insertBefore(photoItem, photoWall.firstChild);
+    } else {
+        photoWall.appendChild(photoItem);
+    }
+
+    // 添加新照片标记
+    photoItem.style.boxShadow = '0 0 0 3px #ff6b6b';
+    setTimeout(() => {
+        photoItem.style.boxShadow = '';
+    }, 2000);
+}
+
+// 删除照片
+async function deletePhoto(photoId) {
+    if (!confirm('确定要删除这张照片吗？删除后无法恢复。')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/couple/${photoId}`, {
+            method: 'DELETE',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            showToast('照片已删除', 'success');
+
+            // 从DOM中移除
+            const photoElement = document.querySelector(`.photo-item[data-id="${photoId}"]`);
+            if (photoElement) {
+                photoElement.style.opacity = '0';
+                photoElement.style.transform = 'scale(0.8)';
+
+                setTimeout(() => {
+                    photoElement.remove();
+
+                    // 更新统计
+                    updateStats(-1, photoElement.getAttribute('data-favorite') === 'true' ? -1 : 0);
+
+                    // 如果没有照片了，显示空状态
+                    const photoWall = document.getElementById('photo-wall');
+                    if (photoWall && photoWall.children.length === 0) {
+                        const emptyState = document.getElementById('empty-state');
+                        if (!emptyState) {
+                            photoWall.parentElement.innerHTML += `
+                                <div id="empty-state" class="empty-state">
+                                    <div class="empty-state-icon">
+                                        <i class="fas fa-images"></i>
+                                    </div>
+                                    <h3>还没有合照</h3>
+                                    <p>上传第一张照片，开始记录你们的甜蜜时光吧！</p>
+                                    <button class="btn btn-primary" onclick="showUploadForm()" style="margin-top: 20px;">
+                                        <i class="fas fa-plus"></i> 上传第一张照片
+                                    </button>
+                                </div>
+                            `;
+                        } else {
+                            emptyState.style.display = 'block';
+                        }
+                    }
+                }, 300);
+            }
+        } else {
+            showToast(data.error || '删除失败', 'error');
+        }
+    } catch (error) {
+        console.error('删除失败:', error);
+        showToast('网络错误，请重试', 'error');
+    }
+}
+
+// 切换收藏状态
+async function toggleFavorite(photoId, button) {
+    try {
+        const response = await fetch(`/couple/${photoId}/favorite`, {
+            method: 'PUT',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            const isFavorite = data.is_favorite;
+            const photoElement = document.querySelector(`.photo-item[data-id="${photoId}"]`);
+
+            if (photoElement) {
+                photoElement.setAttribute('data-favorite', isFavorite);
+
+                if (button) {
+                    button.classList.toggle('active', isFavorite);
+                } else {
+                    const favoriteBtn = photoElement.querySelector('.favorite');
+                    if (favoriteBtn) favoriteBtn.classList.toggle('active', isFavorite);
+                }
+            }
+
+            showToast(data.message, 'success');
+            updateStats(0, isFavorite ? 1 : -1);
+        } else {
+            showToast(data.error || '操作失败', 'error');
+        }
+    } catch (error) {
+        console.error('收藏失败:', error);
+        showToast('网络错误，请重试', 'error');
+    }
+}
+
+// 筛选照片
+function filterPhotos(filter) {
+    if (isLoading || filter === currentFilter) return;
+
+    // 更新按钮状态
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    filterButtons.forEach(btn => {
+        btn.classList.remove('active');
+        // 通过按钮的onclick属性判断
+        if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(filter)) {
+            btn.classList.add('active');
+        }
+    });
+
+    currentFilter = filter;
+    currentPage = 1;
+
+    // 清空当前照片
+    const photoWall = document.getElementById('photo-wall');
+    if (photoWall) {
+        photoWall.innerHTML = '<div class="loading-state" style="text-align: center; padding: 40px;"><i class="fas fa-spinner fa-spin"></i> 加载中...</div>';
+    }
+
+    // 加载筛选后的照片
+    loadFilteredPhotos();
+}
+
+// 加载筛选后的照片
+async function loadFilteredPhotos() {
+    if (isLoading) return;
+
+    isLoading = true;
+
+    try {
+        const onlyFavorites = currentFilter === 'favorites';
+        const sortByRecent = currentFilter === 'recent';
+
+        let url = `/couple/wall/data?page=${currentPage}&per_page=20`;
+        if (onlyFavorites) {
+            url += `&only_favorites=true`;
+        }
+        // 如果后端支持排序，可以添加排序参数
+        if (sortByRecent) {
+            url += `&sort=recent`;
+        }
+
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (response.ok) {
+            const photoWall = document.getElementById('photo-wall');
+            if (!photoWall) return;
+
+            if (currentPage === 1) {
+                photoWall.innerHTML = '';
+            }
+
+            if (data.photos && data.photos.length === 0 && currentPage === 1) {
+                photoWall.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1/-1;">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-images"></i>
+                        </div>
+                        <h3>还没有${currentFilter === 'favorites' ? '收藏' : '最近'}的照片</h3>
+                        <p>${currentFilter === 'favorites' ? '快去收藏一些喜欢的照片吧！' : '上传一些照片来记录美好时光吧！'}</p>
+                    </div>
+                `;
+                const loadMoreBtn = document.getElementById('load-more-btn');
+                if (loadMoreBtn) loadMoreBtn.style.display = 'none';
+            } else if (data.photos) {
+                renderPhotos(data.photos);
+            }
+
+            hasMore = data.has_more;
+            const loadMoreBtn = document.getElementById('load-more-btn');
+            if (loadMoreBtn) {
+                loadMoreBtn.style.display = hasMore ? 'block' : 'none';
+            }
+        }
+    } catch (error) {
+        console.error('加载照片失败:', error);
+        showToast('加载失败，请刷新页面重试', 'error');
+    } finally {
+        isLoading = false;
+    }
+}
+
+function renderPhotos(photos) {
+    const photoWall = document.getElementById('photo-wall');
+
+    photos.forEach(photo => {
+        const photoItem = document.createElement('div');
+        photoItem.className = 'photo-item';
+        photoItem.setAttribute('data-id', photo.id);
+        photoItem.setAttribute('data-favorite', photo.is_favorite || 'false');
+
+        // 安全转义
+        const safeCaption = escapeHtml(photo.caption || '');
+        const safeMemory = escapeHtml(photo.memory || '');
+        const safeLocation = escapeHtml(photo.location || '');
+        const imageUrl = photo.image_url || '';
+        const displayDate = photo.created_at ? new Date(photo.created_at).toLocaleDateString('zh-CN') : '';
+
+        photoItem.innerHTML = `
+            <img src="${imageUrl}" alt="${safeCaption || '合照'}"
+                 class="photo-image" onclick="viewImage('${escapeSingleQuote(imageUrl)}')">
+
+            <div class="photo-overlay"></div>
+
+            <div class="photo-actions">
+                <button class="action-btn favorite ${photo.is_favorite ? 'active' : ''}"
+                        onclick="toggleFavorite(${photo.id}, this)">
+                    <i class="fas fa-star"></i>
+                </button>
+                <button class="action-btn" onclick="deletePhoto(${photo.id})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+
+            <div class="photo-info">
+                <div class="photo-caption">
+                    ${safeCaption || '美好的回忆'}
+                </div>
+                ${safeMemory ? `<div class="photo-meta">${safeMemory.substring(0, 50)}${safeMemory.length > 50 ? '...' : ''}</div>` : ''}
+                ${safeLocation ? `<div class="photo-location"><i class="fas fa-map-marker-alt"></i> ${safeLocation}</div>` : ''}
+                <div class="photo-date">
+                    ${displayDate}
+                </div>
+            </div>
+        `;
+
+        photoWall.appendChild(photoItem);
+    });
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function escapeSingleQuote(text) {
+    return text.replace(/'/g, "\\'");
+}
+
+// 加载更多
+function loadMore() {
+    if (isLoading || !hasMore) return;
+
+    currentPage++;
+    loadFilteredPhotos();
+}
+
+// 更新统计
+function updateStats(photoCount = 0, favoriteCount = 0) {
+    const statsCards = document.querySelectorAll('.stat-card');
+    if (statsCards.length >= 2) {
+        // 更新照片总数
+        const totalElement = statsCards[0].querySelector('.stat-number');
+        if (totalElement) {
+            let total = parseInt(totalElement.textContent) || 0;
+            total = Math.max(0, total + photoCount);
+            totalElement.textContent = total;
+        }
+
+        // 更新收藏数
+        const favoriteElement = statsCards[1].querySelector('.stat-number');
+        if (favoriteElement) {
+            let favorites = parseInt(favoriteElement.textContent) || 0;
+            favorites = Math.max(0, favorites + favoriteCount);
+            favoriteElement.textContent = favorites;
+        }
+    }
+}
+
+// 查看大图
+function viewImage(imageUrl) {
+    const modal = document.getElementById('image-modal');
+    const modalImage = document.getElementById('modal-image');
+    const modalInfo = document.getElementById('modal-info');
+
+    if (!modal || !modalImage || !modalInfo) return;
+
+    // 找到对应的照片元素
+    const photoElement = document.querySelector(`.photo-item img[src="${imageUrl}"]`)?.closest('.photo-item');
+
+    modalImage.src = imageUrl;
+
+    if (photoElement) {
+        const caption = photoElement.querySelector('.photo-caption')?.textContent || '';
+        const memory = photoElement.querySelector('.photo-meta')?.textContent || '';
+        const location = photoElement.querySelector('.photo-location')?.textContent || '';
+        const date = photoElement.querySelector('.photo-date')?.textContent || '';
+
+        modalInfo.innerHTML = `
+            <h4>${caption}</h4>
+            ${memory ? `<p>${memory}</p>` : ''}
+            ${location ? `<p><i class="fas fa-map-marker-alt"></i> ${location}</p>` : ''}
+            ${date ? `<p><i class="far fa-calendar"></i> ${date}</p>` : ''}
+        `;
+    } else {
+        modalInfo.innerHTML = '';
+    }
+
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+// 关闭模态框
+function closeModal() {
+    const modal = document.getElementById('image-modal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+    document.body.style.overflow = 'auto';
+}
+
+// 监听ESC键关闭模态框
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeModal();
+    }
+});
+
+// 初始化
+document.addEventListener('DOMContentLoaded', function() {
+    // 设置今天的日期
+    const today = new Date().toISOString().split('T')[0];
+    const takenDateInput = document.getElementById('taken_date');
+    if (takenDateInput) {
+        takenDateInput.value = today;
+    }
+});
+</script>
+
+<style>
+    .toast-notification {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+    padding: 15px 25px;
+    z-index: 10000;
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+
+.toast-notification.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.toast-notification.success {
+    border-left: 4px solid #4CAF50;
+}
+
+.toast-notification.error {
+    border-left: 4px solid #F44336;
+}
+/* 合照页面专用样式 */
+    .couple-container {
+        padding: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* 页面标题和统计 */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .page-header h1 {
+        color: #ff6b6b;
+        font-size: 2rem;
+        margin: 0;
+    }
+
+    .stats-cards {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        text-align: center;
+        flex: 1;
+        min-width: 120px;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #ff6b6b;
+        margin-bottom: 5px;
+    }
+
+    .stat-label {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    /* 今日回忆卡片 */
+    .memory-card {
+        background: linear-gradient(135deg, #ffe6e6, #ffcccc);
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+        border-left: 4px solid #ff6b6b;
+    }
+
+    .memory-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #ff6b6b;
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+    }
+
+    .memory-content {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+    }
+
+    .memory-image {
+        width: 150px;
+        height: 150px;
+        border-radius: 10px;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+
+    .memory-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .memory-text {
+        flex: 1;
+    }
+
+    .memory-date {
+        color: #666;
+        font-size: 0.9rem;
+        margin-top: 10px;
+    }
+
+    /* 上传表单样式 */
+    .upload-form-container {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+    }
+
+    .upload-form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #333;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #ff6b6b;
+        box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+    }
+
+    textarea.form-control {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    /* 文件上传区域 */
+    .file-upload-area {
+        border: 2px dashed #ddd;
+        border-radius: 10px;
+        padding: 40px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        background: #f8f9fa;
+    }
+
+    .file-upload-area:hover {
+        border-color: #ff6b6b;
+        background: #fff5f5;
+    }
+
+    .file-upload-area.dragover {
+        border-color: #ff6b6b;
+        background: #ffe6e6;
+    }
+
+    .upload-icon {
+        font-size: 3rem;
+        color: #ff6b6b;
+        margin-bottom: 15px;
+    }
+
+    .upload-text {
+        color: #666;
+        margin-bottom: 5px;
+    }
+
+    .upload-hint {
+        color: #999;
+        font-size: 0.9rem;
+    }
+
+    .file-preview {
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    .file-preview img {
+        max-width: 100%;
+        max-height: 300px;
+        border-radius: 10px;
+    }
+
+    /* 照片墙样式 */
+    .filter-buttons {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .filter-btn {
+        padding: 8px 20px;
+        border: 1px solid #ddd;
+        background: white;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .filter-btn.active {
+        background: #ff6b6b;
+        color: white;
+        border-color: #ff6b6b;
+    }
+
+    .filter-btn:hover:not(.active) {
+        border-color: #ff6b6b;
+        color: #ff6b6b;
+    }
+
+    /* 照片网格布局 */
+    .photo-wall {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 40px;
+    }
+
+    .photo-item {
+        position: relative;
+        border-radius: 10px;
+        overflow: hidden;
+        background: white;
+        box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+
+    .photo-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+    .photo-image {
+        width: 100%;
+        height: 250px;
+        object-fit: cover;
+        cursor: pointer;
+    }
+
+    .photo-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.7), transparent 50%);
+        opacity: 0;
+        transition: opacity 0.3s;
+        display: flex;
+        align-items: flex-end;
+        padding: 15px;
+    }
+
+    .photo-item:hover .photo-overlay {
+        opacity: 1;
+    }
+
+    .photo-actions {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        display: flex;
+        gap: 5px;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .photo-item:hover .photo-actions {
+        opacity: 1;
+    }
+
+    .action-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(255, 255, 255, 0.9);
+        color: #333;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+    }
+
+    .action-btn:hover {
+        background: white;
+        transform: scale(1.1);
+    }
+
+    .action-btn.favorite {
+        color: #ff6b6b;
+    }
+
+    .action-btn.favorite.active {
+        background: #ff6b6b;
+        color: white;
+    }
+
+    .photo-info {
+        padding: 15px;
+    }
+
+    .photo-caption {
+        font-weight: 500;
+        margin-bottom: 5px;
+        color: #333;
+    }
+
+    .photo-meta {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .photo-location {
+        color: #ff6b6b;
+        margin-top: 5px;
+    }
+
+    .photo-date {
+        color: #999;
+        font-size: 0.8rem;
+        margin-top: 5px;
+    }
+
+    /* 加载更多按钮 */
+    .load-more {
+        text-align: center;
+        margin: 30px 0;
+    }
+
+    .btn-load-more {
+        padding: 12px 40px;
+        background: #ff6b6b;
+        color: white;
+        border: none;
+        border-radius: 25px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-load-more:hover:not(:disabled) {
+        background: #ff5252;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+    }
+
+    .btn-load-more:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* 空状态 */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #666;
+    }
+
+    .empty-state-icon {
+        font-size: 4rem;
+        color: #ddd;
+        margin-bottom: 20px;
+    }
+
+    .empty-state h3 {
+        margin-bottom: 10px;
+        color: #333;
+    }
+
+    .empty-state p {
+        color: #888;
+    }
+
+    /* 模态框样式 */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal.active {
+        display: flex;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 15px;
+        max-width: 90%;
+        max-height: 90%;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .modal-image {
+        max-width: 100%;
+        max-height: 70vh;
+        display: block;
+    }
+
+    .modal-close {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: rgba(0, 0, 0, 0.5);
+        color: white;
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        font-size: 1.5rem;
+        cursor: pointer;
+        z-index: 1001;
+    }
+
+    .modal-info {
+        padding: 20px;
+    }
+
+    /* 响应式设计 */
+    @media (max-width: 768px) {
+        .stats-cards {
+            flex-direction: column;
+        }
+
+        .memory-content {
+            flex-direction: column;
+        }
+
+        .memory-image {
+            width: 100%;
+            height: 200px;
+        }
+
+        .photo-wall {
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        }
+
+        .photo-image {
+            height: 200px;
+        }
+    }
+.toast-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1rem;
+}
+</style>
+{% endblock %}

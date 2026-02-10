@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+{% block title %}上传照片 - 共享时光轴{% endblock %}
+
+{% block content %}
+<div class="upload-container">
+    <div class="upload-header">
+        <h1>📷 上传照片到共享时光轴</h1>
+        <p>分享你的美好瞬间，与大家一起回忆</p>
+    </div>
+    
+    <div class="upload-form-wrapper">
+        {% if error %}
+        <div class="error-message">
+            ⚠️ {{ error }}
+        </div>
+        {% endif %}
+        
+        <form method="post" action="/album/timeline/upload" enctype="multipart/form-data" class="upload-form">
+            <div class="form-group">
+                <label for="memory">💭 回忆描述</label>
+                <textarea 
+                    id="memory" 
+                    name="memory" 
+                    placeholder="写下这张照片的故事或感受..." 
+                    rows="4"
+                    required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="location">📍 拍摄地点（可选）</label>
+                <input 
+                    type="text" 
+                    id="location" 
+                    name="location" 
+                    placeholder="例如：上海外滩、北京故宫...">
+            </div>
+            
+            <div class="form-group">
+                <label for="shoot_date">🗓️ 拍摄日期</label>
+                <input 
+                    type="date" 
+                    id="shoot_date" 
+                    name="shoot_date" 
+                    required>
+                <small>选择照片的实际拍摄日期</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="image">🖼️ 选择照片</label>
+                <input 
+                    type="file" 
+                    id="image" 
+                    name="image" 
+                    accept="image/*"
+                    required>
+                <small>支持 JPG、PNG、GIF、WebP 格式，最大 5MB</small>
+            </div>
+            
+            <div class="form-actions">
+                <a href="/album/timeline" class="btn btn-secondary">返回时光轴</a>
+                <button type="submit" class="btn btn-primary">上传照片</button>
+            </div>
+        </form>
+    </div>
+    
+    <div class="upload-tips">
+        <h3>📝 上传小贴士：</h3>
+        <ul>
+            <li>照片将按照拍摄日期在时光轴中排序</li>
+            <li>所有人都可以看到你上传的照片</li>
+            <li>照片大小建议不超过 5MB</li>
+            <li>尽量选择清晰的图片，便于长久保存</li>
+        </ul>
+    </div>
+</div>
+
+<style>
+.upload-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.upload-header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 30px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px;
+}
+
+.upload-header h1 {
+    margin: 0 0 10px 0;
+    font-size: 32px;
+}
+
+.upload-header p {
+    margin: 0;
+    opacity: 0.9;
+}
+
+.upload-form-wrapper {
+    background: white;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    margin-bottom: 30px;
+}
+
+.error-message {
+    background: #fee;
+    color: #c33;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    border-left: 4px solid #c33;
+}
+
+.upload-form {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-group textarea,
+.form-group input[type="text"],
+.form-group input[type="date"],
+.form-group input[type="file"] {
+    padding: 14px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+    outline: none;
+}
+
+.form-group textarea:focus,
+.form-group input[type="text"]:focus,
+.form-group input[type="date"]:focus {
+    border-color: #667eea;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+    font-family: inherit;
+}
+
+.form-group small {
+    margin-top: 8px;
+    color: #666;
+    font-size: 14px;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.btn-secondary {
+    background: #f8f9fa;
+    color: #333;
+    border: 2px solid #e0e0e0;
+}
+
+.btn-secondary:hover {
+    background: #e9ecef;
+    border-color: #d0d0d0;
+}
+
+.upload-tips {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 10px;
+    border-left: 5px solid #667eea;
+}
+
+.upload-tips h3 {
+    margin: 0 0 15px 0;
+    color: #333;
+}
+
+.upload-tips ul {
+    margin: 0;
+    padding-left: 20px;
+    color: #666;
+}
+
+.upload-tips li {
+    margin-bottom: 10px;
+}
+
+@media (max-width: 768px) {
+    .upload-form-wrapper {
+        padding: 25px;
+    }
+    
+    .upload-header h1 {
+        font-size: 24px;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+}
+</style>
+
+<script>
+// 设置日期选择器的默认值为今天
+window.addEventListener('DOMContentLoaded', (event) => {
+    const dateInput = document.getElementById('shoot_date');
+    if (dateInput) {
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.value = today;
+        
+        // 限制日期不能超过今天
+        dateInput.max = today;
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,1446 @@
+<!-- templates/memory.html -->
+{% extends "base.html" %}
+
+{% block title %}📅 纪念日 - 记录我们的时光{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* 颜色变量定义 */
+    :root {
+        --color-love: #ff6b6b;
+        --color-love-light: rgba(255, 107, 107, 0.1);
+        --color-birthday: #4ecdc4;
+        --color-birthday-light: rgba(78, 205, 196, 0.1);
+        --color-travel: #ffd166;
+        --color-travel-light: rgba(255, 209, 102, 0.1);
+        --color-custom: #95e1d3;
+        --color-custom-light: rgba(149, 225, 211, 0.1);
+        --color-anniversary: #ff8e8e;
+        --color-holiday: #4d96ff;
+        --color-event: #6b48ff;
+    }
+
+    /* 纪念日专用样式 */
+    .memory-container {
+        padding: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+        animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 页面标题 */
+    .page-header {
+        text-align: center;
+        margin-bottom: 40px;
+        position: relative;
+    }
+
+    .page-header h1 {
+        font-size: 2.8rem;
+        color: #ff6b6b;
+        margin-bottom: 10px;
+        background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        position: relative;
+        display: inline-block;
+    }
+
+    .page-header h1::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, #ff6b6b, #ff8e8e);
+        border-radius: 2px;
+    }
+
+    .page-header p {
+        color: #666;
+        font-size: 1.1rem;
+        max-width: 600px;
+        margin: 25px auto 0;
+        line-height: 1.6;
+    }
+
+    /* 统计卡片 */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 40px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        text-align: center;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255, 107, 107, 0.1);
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, #ff6b6b, #ff8e8e);
+        transition: height 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px) scale(1.02);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    }
+
+    .stat-card:hover::before {
+        height: 6px;
+    }
+
+    .stat-number {
+        font-size: 3rem;
+        font-weight: 800;
+        color: #ff6b6b;
+        line-height: 1;
+        margin-bottom: 10px;
+        font-family: 'Arial Rounded MT Bold', 'Segoe UI', sans-serif;
+    }
+
+    .stat-label {
+        color: #666;
+        font-size: 0.95rem;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+    }
+
+    /* 即将到来区域 */
+    .upcoming-section {
+        background: linear-gradient(135deg, #fff5f5, #fff);
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 40px;
+        border-left: 5px solid #ff6b6b;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .upcoming-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(45deg, rgba(255, 107, 107, 0.1), transparent);
+        border-radius: 0 0 0 100px;
+    }
+
+    .upcoming-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .upcoming-header h3 {
+        color: #ff6b6b;
+        font-size: 1.5rem;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .upcoming-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .upcoming-item {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        box-shadow: 0 3px 15px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        border: 1px solid rgba(255, 107, 107, 0.1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .upcoming-item::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: #ff6b6b;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .upcoming-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .upcoming-item:hover::before {
+        opacity: 1;
+    }
+
+    .upcoming-icon {
+        font-size: 2.5rem;
+        width: 70px;
+        height: 70px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 15px;
+        flex-shrink: 0;
+        transition: all 0.3s ease;
+    }
+
+    .upcoming-content {
+        flex: 1;
+    }
+
+    .upcoming-title {
+        font-weight: 700;
+        font-size: 1.2rem;
+        margin-bottom: 8px;
+        color: #333;
+        transition: color 0.3s ease;
+    }
+
+    .upcoming-item:hover .upcoming-title {
+        color: #ff6b6b;
+    }
+
+    .upcoming-date {
+        color: #666;
+        font-size: 0.95rem;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .upcoming-days {
+        display: inline-block;
+        padding: 6px 15px;
+        background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+        color: white;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        box-shadow: 0 3px 10px rgba(255, 107, 107, 0.2);
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+
+    /* 纪念日列表控制栏 */
+    .controls-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+        gap: 20px;
+        padding: 20px;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .filter-tabs {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .filter-tab {
+        padding: 10px 24px;
+        border: 2px solid #e0e0e0;
+        background: white;
+        border-radius: 25px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .filter-tab::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 1;
+    }
+
+    .filter-tab.active {
+        border-color: transparent;
+        color: white;
+        position: relative;
+        z-index: 2;
+    }
+
+    .filter-tab.active::before {
+        opacity: 1;
+    }
+
+    .filter-tab span {
+        position: relative;
+        z-index: 2;
+    }
+
+    .filter-tab:hover:not(.active) {
+        border-color: #ff6b6b;
+        color: #ff6b6b;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255, 107, 107, 0.1);
+    }
+
+    .btn-create {
+        padding: 12px 30px;
+        background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 5px 20px rgba(255, 107, 107, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-create::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .btn-create:hover {
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 8px 30px rgba(255, 107, 107, 0.4);
+    }
+
+    .btn-create:hover::before {
+        left: 100%;
+    }
+
+    /* 纪念日网格 */
+    .memories-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 30px;
+        margin-bottom: 50px;
+    }
+
+    .memory-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        border: 1px solid rgba(255, 107, 107, 0.1);
+        animation: cardAppear 0.6s ease forwards;
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    @keyframes cardAppear {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .memory-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .memory-color-bar {
+        height: 8px;
+        width: 100%;
+        transition: height 0.3s ease;
+    }
+
+    .memory-card:hover .memory-color-bar {
+        height: 12px;
+    }
+
+    .memory-content {
+        padding: 30px;
+        position: relative;
+    }
+
+    .memory-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 20px;
+        position: relative;
+    }
+
+    .memory-icon {
+        font-size: 2.2rem;
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 15px;
+        margin-right: 20px;
+        flex-shrink: 0;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .memory-card:hover .memory-icon {
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    .memory-title {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: #333;
+        margin-bottom: 8px;
+        flex: 1;
+        line-height: 1.3;
+        transition: color 0.3s ease;
+    }
+
+    .memory-card:hover .memory-title {
+        color: #ff6b6b;
+    }
+
+    .memory-date {
+        color: #666;
+        font-size: 0.95rem;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .memory-description {
+        color: #555;
+        line-height: 1.7;
+        margin-bottom: 25px;
+        font-size: 1rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* 时间信息 */
+    .time-info {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .time-item {
+        text-align: center;
+        padding: 20px;
+        background: linear-gradient(135deg, #f8f9fa, #f0f2f5);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .memory-card:hover .time-item {
+        background: linear-gradient(135deg, #f0f4ff, #e6ecff);
+        transform: translateY(-5px);
+    }
+
+    .time-number {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #ff6b6b;
+        line-height: 1;
+        margin-bottom: 8px;
+        font-family: 'Arial Rounded MT Bold', 'Segoe UI', sans-serif;
+    }
+
+    .time-label {
+        color: #666;
+        font-size: 0.9rem;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+    }
+
+    /* 年轮预览 */
+    .snapshots-preview {
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 2px solid #f0f0f0;
+        position: relative;
+    }
+
+    .snapshots-preview::before {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: 0;
+        width: 60px;
+        height: 2px;
+        background: linear-gradient(90deg, #ff6b6b, #ff8e8e);
+    }
+
+    .snapshots-title {
+        font-size: 1rem;
+        color: #666;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+    }
+
+    .snapshots-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .snapshot-item {
+        padding: 12px 18px;
+        background: linear-gradient(135deg, #f8f9fa, #f0f2f5);
+        border-radius: 10px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255, 107, 107, 0.1);
+        cursor: pointer;
+    }
+
+    .snapshot-item:hover {
+        background: linear-gradient(135deg, #f0f4ff, #e6ecff);
+        transform: translateX(5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .snapshot-year {
+        font-weight: 700;
+        color: #ff6b6b;
+        margin-right: 12px;
+        display: inline-block;
+        min-width: 60px;
+    }
+
+    .snapshot-note {
+        color: #555;
+        line-height: 1.5;
+    }
+
+    /* 记忆卡片操作 */
+    .memory-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 25px;
+    }
+
+    .memory-btn {
+        flex: 1;
+        padding: 12px;
+        border: none;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .memory-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .memory-btn:hover::before {
+        left: 100%;
+    }
+
+    .btn-view {
+        background: linear-gradient(135deg, #4d7cff, #6b96ff);
+        color: white;
+        box-shadow: 0 5px 15px rgba(77, 124, 255, 0.3);
+    }
+
+    .btn-view:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(77, 124, 255, 0.4);
+    }
+
+    .btn-add-snapshot {
+        background: linear-gradient(135deg, #4caf50, #66bb6a);
+        color: white;
+        box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+    }
+
+    .btn-add-snapshot:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(76, 175, 80, 0.4);
+    }
+
+    /* 空状态 */
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        grid-column: 1 / -1;
+        background: linear-gradient(135deg, #f8f9fa, #f0f2f5);
+        border-radius: 20px;
+        border: 2px dashed rgba(255, 107, 107, 0.3);
+        margin: 30px 0;
+        animation: fadeIn 0.8s ease;
+    }
+
+    .empty-icon {
+        font-size: 6rem;
+        color: #ddd;
+        margin-bottom: 30px;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+
+    .empty-title {
+        font-size: 2.2rem;
+        color: #666;
+        margin-bottom: 15px;
+        font-weight: 800;
+        background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .empty-description {
+        color: #888;
+        max-width: 500px;
+        margin: 0 auto 40px;
+        line-height: 1.8;
+        font-size: 1.1rem;
+    }
+
+    /* 模态框 */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        backdrop-filter: blur(5px);
+        animation: modalFadeIn 0.3s ease;
+    }
+
+    @keyframes modalFadeIn {
+        from { opacity: 0; backdrop-filter: blur(0); }
+        to { opacity: 1; backdrop-filter: blur(5px); }
+    }
+
+    .modal.active {
+        display: flex;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        max-width: 600px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        animation: modalSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+
+    @keyframes modalSlideIn {
+        from { opacity: 0; transform: translateY(50px) scale(0.9); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .modal-close {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #f8f9fa;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        color: #666;
+    }
+
+    .modal-close:hover {
+        background: #ff6b6b;
+        color: white;
+        transform: rotate(90deg);
+    }
+
+    /* 加载动画 */
+    .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 107, 107, 0.3);
+        border-radius: 50%;
+        border-top-color: #ff6b6b;
+        animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* 吐司通知 */
+    .toast {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+        color: white;
+        padding: 15px 25px;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(255, 107, 107, 0.3);
+        z-index: 1001;
+        opacity: 0;
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        max-width: 90%;
+    }
+
+    .toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    .toast-icon {
+        font-size: 1.2rem;
+    }
+
+    .toast-message {
+        font-weight: 500;
+    }
+
+    /* 响应式设计 */
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .memories-grid {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .controls-bar {
+            flex-direction: column;
+            align-items: stretch;
+            padding: 15px;
+        }
+
+        .filter-tabs {
+            justify-content: center;
+        }
+
+        .filter-tab {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+        }
+
+        .time-info {
+            grid-template-columns: 1fr;
+        }
+
+        .page-header h1 {
+            font-size: 2.2rem;
+        }
+
+        .memory-content {
+            padding: 20px;
+        }
+
+        .memory-icon {
+            width: 50px;
+            height: 50px;
+            font-size: 1.8rem;
+            margin-right: 15px;
+        }
+
+        .memory-title {
+            font-size: 1.2rem;
+        }
+
+        .upcoming-item {
+            padding: 15px;
+        }
+
+        .upcoming-icon {
+            width: 60px;
+            height: 60px;
+            font-size: 2rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .filter-tabs {
+            gap: 5px;
+        }
+
+        .filter-tab {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+
+        .memory-actions {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .memory-btn {
+            width: 100%;
+        }
+
+        .page-header h1 {
+            font-size: 1.8rem;
+        }
+    }
+
+    /* 类型颜色定义 - 使用CSS类代替内联样式 */
+    .color-love { color: var(--color-love) !important; }
+    .color-love-bg { background-color: var(--color-love) !important; }
+    .color-love-light { background-color: var(--color-love-light) !important; }
+
+    .color-birthday { color: var(--color-birthday) !important; }
+    .color-birthday-bg { background-color: var(--color-birthday) !important; }
+    .color-birthday-light { background-color: var(--color-birthday-light) !important; }
+
+    .color-travel { color: var(--color-travel) !important; }
+    .color-travel-bg { background-color: var(--color-travel) !important; }
+    .color-travel-light { background-color: var(--color-travel-light) !important; }
+
+    .color-custom { color: var(--color-custom) !important; }
+    .color-custom-bg { background-color: var(--color-custom) !important; }
+    .color-custom-light { background-color: var(--color-custom-light) !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="memory-container">
+    <!-- 页面标题 -->
+    <div class="page-header">
+        <h1>📅 纪念日</h1>
+        <p>记录我们共同度过的每一个重要日子，见证时光里的美好</p>
+    </div>
+
+    <!-- 统计卡片 -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">{{ stats.total_memories }}</div>
+            <div class="stat-label">纪念日总数</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-number">{{ stats.years_together }}</div>
+            <div class="stat-label">相伴年数</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-number">{{ stats.total_snapshots }}</div>
+            <div class="stat-label">年轮记录</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-number">{{ stats.upcoming_count }}</div>
+            <div class="stat-label">即将到来</div>
+        </div>
+    </div>
+
+    <!-- 即将到来的纪念日 -->
+    {% if upcoming %}
+    <div class="upcoming-section">
+        <div class="upcoming-header">
+            <h3><i class="fas fa-calendar-alt"></i> 即将到来</h3>
+        </div>
+
+        <div class="upcoming-list">
+            {% for item in upcoming %}
+            {% set memory_day = item.memory_day %}
+            {% set color_class = get_color_class(memory_day.type) %}
+            <div class="upcoming-item" onclick="viewMemoryDay('{{ memory_day.id }}')">
+                <div class="upcoming-icon {{ color_class }}-light {{ color_class }}">
+                    {{ memory_day.icon }}
+                </div>
+
+                <div class="upcoming-content">
+                    <div class="upcoming-title">{{ memory_day.title }}</div>
+                    <div class="upcoming-date">
+                        <i class="far fa-calendar"></i> {{ item.date.strftime("%Y年%m月%d日") }}
+                    </div>
+                    <div class="upcoming-days">
+                        还有 {{ item.days_until }} 天
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 控制栏 -->
+    <div class="controls-bar">
+        <div class="filter-tabs">
+            <div class="filter-tab active" data-type="all" onclick="filterMemories('all')">
+                <span>全部</span>
+            </div>
+            <div class="filter-tab" data-type="love" onclick="filterMemories('love')">
+                <span>❤️ 爱情</span>
+            </div>
+            <div class="filter-tab" data-type="birthday" onclick="filterMemories('birthday')">
+                <span>🎂 生日</span>
+            </div>
+            <div class="filter-tab" data-type="travel" onclick="filterMemories('travel')">
+                <span>✈️ 旅行</span>
+            </div>
+            <div class="filter-tab" data-type="custom" onclick="filterMemories('custom')">
+                <span>✨ 自定义</span>
+            </div>
+        </div>
+
+        <button class="btn-create" onclick="createMemoryDay()">
+            <i class="fas fa-plus"></i> 创建纪念日
+        </button>
+    </div>
+
+    <!-- 纪念日网格 -->
+    <div class="memories-grid" id="memoriesGrid">
+        {% if memory_days %}
+            {% for memory in memory_days %}
+            {% set color_class = get_color_class(memory.type) %}
+            <div
+                class="memory-card"
+                :data-type="memory.type"
+                :style="{ animationDelay: `${index * 0.1}s` }"
+                v-for="(memory, index) in memoryList"
+                :key="index"
+                >
+                <!-- 颜色条 -->
+                <div class="memory-color-bar {{ color_class }}-bg"></div>
+
+                <div class="memory-content">
+                    <!-- 头部 -->
+                    <div class="memory-header">
+                        <div class="memory-icon {{ color_class }}-light {{ color_class }}">
+                            {{ memory.icon }}
+                        </div>
+
+                        <div style="flex: 1;">
+                            <h3 class="memory-title">{{ memory.title }}</h3>
+                            <div class="memory-date">
+                                <i class="far fa-calendar"></i> {{ memory.date.strftime("%Y年%m月%d日") }}
+                                {% if memory.is_annual %}
+                                <span class="annual-badge">每年</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 描述 -->
+                    {% if memory.description %}
+                    <div class="memory-description">{{ memory.description }}</div>
+                    {% endif %}
+
+                    <!-- 时间信息 -->
+                    <div class="time-info">
+                        <div class="time-item">
+                            <div class="time-number">
+                                {% set days_passed = (today - memory.date).days %}
+                                {{ days_passed if days_passed > 0 else 0 }}
+                            </div>
+                            <div class="time-label">已过去天数</div>
+                        </div>
+
+                        {% if memory.is_annual %}
+                        <div class="time-item">
+                            <div class="time-number">
+                                {% set years_passed = today.year - memory.date.year %}
+                                {% if (today.month, today.day) < (memory.date.month, memory.date.day) %}
+                                    {{ years_passed - 1 }}
+                                {% else %}
+                                    {{ years_passed }}
+                                {% endif %}
+                            </div>
+                            <div class="time-label">第 N 个年头</div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- 年轮预览 -->
+                    {% if memory.snapshots and memory.snapshots|length > 0 %}
+                    <div class="snapshots-preview">
+                        <div class="snapshots-title">
+                            <i class="fas fa-history"></i> 年轮记录
+                        </div>
+                        <div class="snapshots-list">
+                            {% for snapshot in memory.snapshots[:2] %}
+                            <div class="snapshot-item" onclick="viewSnapshot('{{ memory.id }}', '{{ snapshot.year }}')">
+                                <span class="snapshot-year">{{ snapshot.year }}年</span>
+                                <span class="snapshot-note">{{ snapshot.note[:30] }}{% if snapshot.note|length > 30 %}...{% endif %}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- 操作按钮 -->
+                    <div class="memory-actions">
+                        <button class="memory-btn btn-view" onclick="viewMemoryDay('{{ memory.id }}')">
+                            <i class="fas fa-eye"></i> 查看详情
+                        </button>
+                        <button class="memory-btn btn-add-snapshot" onclick="addSnapshot('{{ memory.id }}')">
+                            <i class="fas fa-plus"></i> 添加记录
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <!-- 空状态 -->
+        <div class="empty-state">
+            <div class="empty-icon">📅</div>
+            <h2 class="empty-title">还没有纪念日</h2>
+            <p class="empty-description">
+                纪念日是爱情的时间锚点，记录下你们共同度过的每一个重要日子，<br>
+                让时光的印记成为最珍贵的回忆。
+            </p>
+            <button class="btn-create" onclick="createMemoryDay()">
+                <i class="fas fa-plus"></i> 创建第一个纪念日
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 模态框（用于创建/编辑） -->
+<div id="memoryModal" class="modal">
+    <div class="modal-content" id="modalContent">
+        <button class="modal-close" onclick="hideModal()">&times;</button>
+        <!-- 模态框内容将通过JS动态加载 -->
+    </div>
+</div>
+
+<!-- 吐司通知 -->
+<div id="toast" class="toast">
+    <div class="toast-icon">
+        <i class="fas fa-check-circle"></i>
+    </div>
+    <div class="toast-message"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// 全局变量
+let currentFilter = 'all';
+let currentPage = 1;
+let isLoading = false;
+
+// 颜色类名映射
+const colorClassMap = {
+    'love': 'color-love',
+    'birthday': 'color-birthday',
+    'travel': 'color-travel',
+    'custom': 'color-custom'
+};
+
+// 吐司通知函数
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    const toastIcon = toast.querySelector('.toast-icon i');
+    const toastMessage = toast.querySelector('.toast-message');
+
+    // 设置图标
+    if (type === 'success') {
+        toastIcon.className = 'fas fa-check-circle';
+        toast.style.background = 'linear-gradient(135deg, #4CAF50, #66bb6a)';
+    } else if (type === 'error') {
+        toastIcon.className = 'fas fa-exclamation-circle';
+        toast.style.background = 'linear-gradient(135deg, #f44336, #ef5350)';
+    } else if (type === 'warning') {
+        toastIcon.className = 'fas fa-exclamation-triangle';
+        toast.style.background = 'linear-gradient(135deg, #ff9800, #ffb74d)';
+    } else if (type === 'info') {
+        toastIcon.className = 'fas fa-info-circle';
+        toast.style.background = 'linear-gradient(135deg, #2196F3, #42a5f5)';
+    }
+
+    toastMessage.textContent = message;
+    toast.classList.add('show');
+
+    // 3秒后自动隐藏
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
+
+// 过滤纪念日
+function filterMemories(type) {
+    if (isLoading) return;
+    if (currentFilter === type) return;
+
+    currentFilter = type;
+    currentPage = 1;
+
+    // 更新标签状态
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+        const isActive = tab.getAttribute('data-type') === type;
+        tab.classList.toggle('active', isActive);
+    });
+
+    // 显示加载状态
+    const memoriesGrid = document.getElementById('memoriesGrid');
+    memoriesGrid.innerHTML = `
+        <div style="grid-column: 1/-1; text-align: center; padding: 40px;">
+            <div class="loading-spinner" style="width: 40px; height: 40px; margin: 0 auto 20px;"></div>
+            <p style="color: #666;">加载中...</p>
+        </div>
+    `;
+
+    // 模拟延迟后显示结果
+    setTimeout(() => {
+        filterMemoriesClient(type);
+    }, 300);
+}
+
+// 客户端过滤
+function filterMemoriesClient(type) {
+    const memoriesGrid = document.getElementById('memoriesGrid');
+    const allCards = document.querySelectorAll('.memory-card');
+
+    if (type === 'all') {
+        // 显示所有卡片
+        allCards.forEach((card, index) => {
+            card.style.display = 'block';
+            card.style.animationDelay = `${index * 0.1}s`;
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 100 + 100);
+        });
+    } else {
+        // 只显示匹配类型的卡片
+        let visibleCount = 0;
+        allCards.forEach(card => {
+            const cardType = card.getAttribute('data-type');
+            if (cardType === type) {
+                card.style.display = 'block';
+                card.style.animationDelay = `${visibleCount * 0.1}s`;
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, visibleCount * 100 + 100);
+
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        // 如果没有匹配的卡片，显示空状态
+        if (visibleCount === 0) {
+            const typeNames = {
+                'love': '爱情',
+                'birthday': '生日',
+                'travel': '旅行',
+                'custom': '自定义'
+            };
+
+            memoriesGrid.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">📅</div>
+                    <h2 class="empty-title">没有${typeNames[type] || ''}纪念日</h2>
+                    <p class="empty-description">
+                        还没有添加${typeNames[type] || ''}类型的纪念日<br>
+                        点击下方按钮创建一个吧！
+                    </p>
+                    <button class="btn-create" onclick="createMemoryDay()">
+                        <i class="fas fa-plus"></i> 创建${typeNames[type] || ''}纪念日
+                    </button>
+                </div>
+            `;
+        }
+    }
+
+    isLoading = false;
+}
+
+// 查看纪念日详情
+function viewMemoryDay(memoryId) {
+    window.location.href = `/memories/${memoryId}`;
+}
+
+// 查看年轮记录
+function viewSnapshot(memoryId, year) {
+    window.location.href = `/memories/${memoryId}?year=${year}`;
+}
+
+// 创建纪念日
+function createMemoryDay() {
+    window.location.href = '/memories/create';
+}
+
+// 添加年轮记录
+async function addSnapshot(memoryId) {
+    const year = new Date().getFullYear();
+
+    // 创建模态框内容
+    const modalContent = `
+        <h3 style="margin-bottom: 20px; color: #333; text-align: center;">
+            <i class="fas fa-plus-circle"></i> 添加年轮记录
+        </h3>
+        <form id="snapshot-form" style="display: flex; flex-direction: column; gap: 15px;">
+            <div>
+                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">
+                    <i class="fas fa-calendar"></i> 年份
+                </label>
+                <input type="number" id="snapshot-year"
+                       value="${year}"
+                       min="2000" max="${year}"
+                       style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem;"
+                       required>
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">
+                    <i class="fas fa-comment"></i> 记录内容
+                </label>
+                <textarea id="snapshot-note" rows="4"
+                          placeholder="写下这一年的特别回忆..."
+                          style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem; resize: vertical;"
+                          required></textarea>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="button" onclick="hideModal()"
+                        style="flex: 1; padding: 12px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    取消
+                </button>
+                <button type="submit" id="save-snapshot-btn"
+                        style="flex: 1; padding: 12px; background: linear-gradient(135deg, #4caf50, #66bb6a); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    保存记录
+                </button>
+            </div>
+        </form>
+    `;
+
+    const modalContentDiv = document.getElementById('modalContent');
+    modalContentDiv.innerHTML = modalContent;
+
+    // 添加表单提交事件
+    const form = document.getElementById('snapshot-form');
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await saveSnapshot(memoryId);
+    });
+
+    showModal();
+}
+
+// 保存年轮记录
+async function saveSnapshot(memoryId) {
+    const year = document.getElementById('snapshot-year').value;
+    const note = document.getElementById('snapshot-note').value.trim();
+    const saveBtn = document.getElementById('save-snapshot-btn');
+
+    if (!year || !note) {
+        showToast('请填写完整信息', 'warning');
+        return;
+    }
+
+    if (year < 2000 || year > new Date().getFullYear()) {
+        showToast('年份必须在2000年至今之间', 'warning');
+        return;
+    }
+
+    // 禁用按钮，显示加载状态
+    const originalText = saveBtn.innerHTML;
+    saveBtn.innerHTML = '<div class="loading-spinner" style="display: inline-block; margin-right: 8px;"></div> 保存中...';
+    saveBtn.disabled = true;
+
+    try {
+        const response = await fetch(`/memories/${memoryId}/snapshot`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                year: parseInt(year),
+                note: note
+            })
+        });
+
+        if (response.ok) {
+            showToast('记录保存成功！', 'success');
+            hideModal();
+
+            // 延迟1秒后刷新页面
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            const error = await response.json();
+            showToast(`保存失败: ${error.detail || error.message || '未知错误'}`, 'error');
+            saveBtn.innerHTML = originalText;
+            saveBtn.disabled = false;
+        }
+    } catch (error) {
+        console.error('保存失败:', error);
+        showToast('网络错误，请重试', 'error');
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
+    }
+}
+
+// 显示模态框
+function showModal() {
+    const modal = document.getElementById('memoryModal');
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+// 隐藏模态框
+function hideModal() {
+    const modal = document.getElementById('memoryModal');
+    modal.classList.remove('active');
+    document.body.style.overflow = 'auto';
+}
+
+// 页面加载时初始化
+document.addEventListener('DOMContentLoaded', function() {
+    // 为每个卡片添加延迟动画
+    const cards = document.querySelectorAll('.memory-card');
+    cards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+    });
+
+    // 点击模态框背景关闭
+    const modal = document.getElementById('memoryModal');
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            hideModal();
+        }
+    });
+
+    // ESC键关闭模态框
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            hideModal();
+        }
+    });
+
+    // 添加年度标记样式
+    const style = document.createElement('style');
+    style.textContent = `
+        .annual-badge {
+            font-size: 0.75rem;
+            background: linear-gradient(135deg, #e8f5e8, #d4edd5);
+            color: #4caf50;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(76, 175, 80, 0.2);
+        }
+    `;
+    document.head.appendChild(style);
+});
+</script>
+{% endblock %}

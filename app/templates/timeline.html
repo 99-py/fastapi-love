@@ -1,0 +1,654 @@
+<!-- app/templates/timeline.html -->
+{% extends "base.html" %}
+
+{% block title %}💬 恋爱动态{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* 动态发布表单 */
+    .moment-form {
+        background: linear-gradient(135deg, #f8f9ff, #f0f4ff);
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+        border-left: 4px solid #ff6b6b;
+    }
+
+    /* 动态列表项 */
+    .moment-item {
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 20px;
+        border-left: 4px solid #ff6b6b;
+        transition: all 0.3s ease;
+    }
+
+    .moment-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .moment-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .moment-user {
+        font-weight: 600;
+        color: #ff6b6b;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .moment-time {
+        color: #888;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .moment-content {
+        margin-bottom: 20px;
+        line-height: 1.6;
+        font-size: 1.05rem;
+        padding-left: 10px;
+        border-left: 2px solid #f0f0f0;
+    }
+
+    .moment-image {
+        margin-top: 15px;
+        border-radius: 10px;
+        overflow: hidden;
+        max-width: 100%;
+    }
+
+    .moment-image img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+    }
+
+    .moment-image img:hover {
+        transform: scale(1.02);
+    }
+
+    /* 文件输入样式 */
+    .file-input-wrapper {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+        width: 100%;
+    }
+
+    .file-input-wrapper input[type=file] {
+        position: absolute;
+        left: 0;
+        top: 0;
+        opacity: 0;
+        cursor: pointer;
+        height: 100%;
+        width: 100%;
+    }
+
+    .file-input-label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 12px;
+        background: white;
+        border: 2px dashed #e0e0e0;
+        border-radius: 10px;
+        color: #666;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .file-input-label:hover {
+        border-color: #ff6b6b;
+        background: #fff9f9;
+    }
+
+    .file-selected {
+        margin-top: 10px;
+        font-size: 0.9rem;
+        color: #666;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .file-selected.hidden {
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-heart"></i> 恋爱动态</h1>
+</div>
+
+<!-- 发布动态表单 -->
+<div class="card moment-form">
+    <form method="post" action="/moments/" enctype="multipart/form-data" id="moment-form">
+        <div class="form-group">
+            <textarea name="content" class="form-control" placeholder="记录下这一刻的心情，和TA分享..." required rows="3"></textarea>
+        </div>
+
+        <div class="form-group">
+            <div class="file-input-wrapper">
+                <input type="file" name="image" id="image-input" accept="image/*" class="form-control">
+                <label for="image-input" class="file-input-label">
+                    <i class="fas fa-camera"></i> 上传图片（可选）
+                </label>
+            </div>
+            <div id="file-selected" class="file-selected hidden">
+                <i class="fas fa-check-circle"></i> <span id="file-name"></span>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full">
+            <i class="fas fa-paper-plane"></i> 发布动态
+        </button>
+    </form>
+</div>
+
+<!-- 动态列表 -->
+<!-- 修改模板中的动态列表部分 -->
+<div class="moments-container">
+    {% if moments %}
+        {% for m in moments %}
+        <div class="card moment-item" id="moment-{{ m.id }}">
+            <div class="moment-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span class="moment-user">
+                        <i class="fas fa-user-circle"></i> {{ m.user }}
+                    </span>
+                    <span class="moment-time">
+                        <i class="far fa-clock"></i> {{ m.created_at.strftime("%Y-%m-%d %H:%M") }}
+                    </span>
+                </div>
+
+                <!-- 添加删除按钮 -->
+                {% if m.is_owner %}
+                <button class="btn-delete-moment" data-id="{{ m.id }}" style="
+                    background: #ef4444;
+                    color: white;
+                    border: none;
+                    border-radius: 6px;
+                    padding: 5px 10px;
+                    cursor: pointer;
+                    font-size: 0.8rem;
+                    margin-left: 10px;
+                    transition: all 0.3s ease;
+                ">
+                    <i class="fas fa-trash"></i> 删除
+                </button>
+                {% endif %}
+            </div>
+
+            <div class="moment-content">
+                {{ m.content|replace("\n", "<br>")|safe }}
+            </div>
+
+            {% if m.image %}
+            <div class="moment-image">
+                <img src="{{ m.image }}" alt="动态图片" loading="lazy">
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="card empty-state">
+            <i class="fas fa-comment-dots empty-state-icon"></i>
+            <h3>还没有动态</h3>
+            <p>发布第一条动态，记录你们的美好时光吧！</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Toast 通知组件
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast-notification ${type}`;
+        toast.innerHTML = `
+            <div class="toast-content">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        document.body.appendChild(toast);
+
+        // 显示动画
+        setTimeout(() => toast.classList.add('show'), 10);
+
+        // 3秒后自动消失
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+    // 文件选择预览
+    const imageInput = document.getElementById('image-input');
+    const fileSelected = document.getElementById('file-selected');
+    const fileName = document.getElementById('file-name');
+
+    imageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            // 验证文件类型
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+                alert('请选择图片文件（支持 JPG, PNG, GIF, WebP）');
+                e.target.value = '';
+                fileSelected.classList.add('hidden');
+                return;
+            }
+
+            // 检查文件大小（限制 5MB）
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            if (file.size > maxSize) {
+                alert('图片大小不能超过 5MB');
+                e.target.value = '';
+                fileSelected.classList.add('hidden');
+                return;
+            }
+
+            // 显示选择的文件名
+            fileName.textContent = file.name;
+            fileSelected.classList.remove('hidden');
+
+            // 可选：预览图片
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                // 如果需要预览，可以在这里处理
+                console.log('文件预览加载完成');
+            };
+            reader.readAsDataURL(file);
+        } else {
+            fileSelected.classList.add('hidden');
+        }
+    });
+async function deleteMoment(momentId) {
+    if (!confirm('确定要删除这条动态吗？删除后无法恢复。')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/moments/${momentId}`, {
+            method: 'DELETE',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        if (response.ok) {
+            showToast('动态已删除', 'success');
+
+            // 从 DOM 中移除该动态
+            const momentElement = document.getElementById(`moment-${momentId}`);
+            if (momentElement) {
+                momentElement.style.opacity = '0';
+                momentElement.style.transform = 'translateX(-100px)';
+                momentElement.style.transition = 'all 0.3s ease';
+
+                setTimeout(() => {
+                    momentElement.remove();
+
+                    // 如果删除后没有动态了，显示空状态
+                    const momentsContainer = document.querySelector('.moments-container');
+                    if (momentsContainer.children.length === 0) {
+                        momentsContainer.innerHTML = `
+                            <div class="card empty-state">
+                                <i class="fas fa-comment-dots empty-state-icon"></i>
+                                <h3>还没有动态</h3>
+                                <p>发布第一条动态，记录你们的美好时光吧！</p>
+                            </div>
+                        `;
+                    }
+                }, 300);
+            } else {
+                // 如果元素不存在，刷新整个列表
+                refreshMoments();
+            }
+        } else {
+            const data = await response.json();
+            showToast(data.detail || '删除失败', 'error');
+        }
+    } catch (error) {
+        console.error('删除失败:', error);
+        showToast('删除失败，请重试', 'error');
+    }
+}
+
+// 添加事件委托来处理删除按钮点击
+document.addEventListener('click', function(e) {
+    if (e.target.closest('.btn-delete-moment')) {
+        const momentId = e.target.closest('.btn-delete-moment').dataset.id;
+        deleteMoment(momentId);
+    }
+
+    // 如果点击的是删除按钮内部的图标
+    if (e.target.classList.contains('fa-trash') && e.target.closest('.btn-delete-moment')) {
+        const momentId = e.target.closest('.btn-delete-moment').dataset.id;
+        deleteMoment(momentId);
+    }
+});
+    // 修改表单提交事件处理函数
+document.getElementById('moment-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const form = this;
+    const formData = new FormData(form);
+    const submitBtn = form.querySelector('button[type="submit"]');
+
+    // 验证表单
+    const content = form.querySelector('textarea[name="content"]').value.trim();
+    const file = form.querySelector('input[name="image"]').files[0];
+
+    if (!content && !file) {
+        showToast('请填写内容或上传图片', 'error');
+        return;
+    }
+
+    // 如果有文件，验证大小
+    if (file && file.size > 5 * 1024 * 1024) {
+        showToast('图片大小不能超过 5MB', 'error');
+        return;
+    }
+
+    // 禁用提交按钮
+    const originalText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 发布中...';
+
+    try {
+        // 使用 Fetch API 提交表单
+        const response = await fetch('/moments/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            // 发布成功
+            showToast(data.message || '发布成功！');
+
+            // 清空表单
+            form.reset();
+            document.getElementById('file-selected').classList.add('hidden');
+            document.getElementById('file-name').textContent = '';
+
+            // 延迟 0.5 秒后刷新动态列表（给用户一点反馈时间）
+            setTimeout(() => {
+                refreshMoments();
+            }, 500);
+        } else {
+            // 发布失败
+            showToast(data.error || '发布失败，请重试', 'error');
+        }
+    } catch (error) {
+        console.error('发布失败:', error);
+        showToast('网络错误，请稍后重试', 'error');
+    } finally {
+        // 恢复提交按钮
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    }
+});
+    async function refreshMoments() {
+    try {
+        // 显示加载状态
+        const momentsContainer = document.querySelector('.moments-container');
+        const originalContent = momentsContainer.innerHTML;
+        momentsContainer.innerHTML = `
+            <div class="loading-state" style="text-align: center; padding: 40px;">
+                <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #ff6b6b;"></i>
+                <p style="margin-top: 15px; color: #666;">加载中...</p>
+            </div>
+        `;
+
+        // 获取最新的动态列表
+        const response = await fetch('/moments/', {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('获取动态失败');
+        }
+
+        const moments = await response.json();
+
+        // 渲染动态列表
+        renderMoments(moments);
+    } catch (error) {
+        console.error('刷新动态失败:', error);
+        showToast('刷新失败，请手动刷新页面', 'error');
+
+        // 恢复原内容
+        momentsContainer.innerHTML = originalContent;
+    }
+}
+    // 加载动态列表（使用 AJAX）
+    async function loadMoments() {
+        try {
+            const response = await fetch('/moments/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'  // 添加这个请求头
+           }
+        });
+            const moments = await response.json();
+            renderMoments(moments);
+        } catch (error) {
+            console.error('加载动态失败:', error);
+        }
+    }
+
+    // 渲染动态列表的函数
+<!-- 修改 timeline.html 中的 renderMoments 函数 -->
+function renderMoments(moments) {
+    const container = document.querySelector('.moments-container');
+
+    if (!moments || moments.length === 0) {
+        container.innerHTML = `
+            <div class="card empty-state">
+                <i class="fas fa-comment-dots empty-state-icon"></i>
+                <h3>还没有动态</h3>
+                <p>发布第一条动态，记录你们的美好时光吧！</p>
+            </div>
+        `;
+        return;
+    }
+
+    // 按时间倒序排序
+    moments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    let html = '';
+    moments.forEach(m => {
+        // 格式化时间
+        const date = new Date(m.created_at);
+        const formattedTime = date.toLocaleString('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        // 处理换行
+        const contentWithBreaks = m.content ? m.content.replace(/\n/g, '<br>') : '';
+
+        // 检查是否是当前用户的动态
+        const currentUser = '{{ current_user }}'; // 从模板传入
+        const showDeleteButton = m.is_owner === true;
+
+
+        // 生成删除按钮 HTML
+        const deleteButtonHTML = showDeleteButton ? `
+            <button class="btn-delete-moment" data-id="${m.id}" style="
+                background: #ef4444;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                padding: 5px 10px;
+                cursor: pointer;
+                font-size: 0.8rem;
+                margin-left: 10px;
+                transition: all 0.3s ease;
+            ">
+                <i class="fas fa-trash"></i> 删除
+            </button>
+        ` : '';
+
+        html += `
+            <div class="card moment-item" id="moment-${m.id}">
+                <div class="moment-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span class="moment-user">
+                            <i class="fas fa-user-circle"></i> ${m.user}
+                        </span>
+                        <span class="moment-time">
+                            <i class="far fa-clock"></i> ${formattedTime}
+                        </span>
+                    </div>
+                    ${deleteButtonHTML}
+                </div>
+
+                <div class="moment-content">
+                    ${contentWithBreaks}
+                </div>
+
+                ${m.image ? `
+                <div class="moment-image">
+                    <img src="${m.image}" alt="动态图片" loading="lazy">
+                </div>
+                ` : ''}
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
+    // 页面加载时初始化
+document.addEventListener('DOMContentLoaded', function() {
+    // 首次加载动态
+    refreshMoments();
+
+    // 添加文件选择预览的代码（保持原有功能）
+    const imageInput = document.getElementById('image-input');
+    const fileSelected = document.getElementById('file-selected');
+    const fileName = document.getElementById('file-name');
+
+    imageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            // 验证文件类型
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+                alert('请选择图片文件（支持 JPG, PNG, GIF, WebP）');
+                e.target.value = '';
+                fileSelected.classList.add('hidden');
+                return;
+            }
+
+            // 检查文件大小（限制 5MB）
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            if (file.size > maxSize) {
+                alert('图片大小不能超过 5MB');
+                e.target.value = '';
+                fileSelected.classList.add('hidden');
+                return;
+            }
+
+            // 显示选择的文件名
+            fileName.textContent = file.name;
+            fileSelected.classList.remove('hidden');
+        } else {
+            fileSelected.classList.add('hidden');
+        }
+    });
+});
+</script>
+<style>
+    /* Toast 通知样式 */
+    .toast-notification {
+        position: fixed;
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+        padding: 15px 25px;
+        z-index: 10000;
+        opacity: 0;
+        transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    }
+
+    .toast-notification.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    .toast-notification.success {
+        border-left: 4px solid #4CAF50;
+    }
+
+    .toast-notification.error {
+        border-left: 4px solid #F44336;
+    }
+
+    .toast-content {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1rem;
+    }
+
+    .toast-notification.success .toast-content i {
+        color: #4CAF50;
+    }
+
+    .toast-notification.error .toast-content i {
+        color: #F44336;
+    }
+    /* 添加到 timeline.html 的 extra_css 块中 */
+    .loading-state {
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    /* 添加平滑滚动效果 */
+    .moments-container {
+        transition: opacity 0.3s ease;
+    }
+
+    .moments-container.loading {
+        opacity: 0.5;
+    }
+</style>
+{% endblock %}

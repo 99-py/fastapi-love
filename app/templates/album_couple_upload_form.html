@@ -1,0 +1,489 @@
+{% extends "album_couple.html" %}
+
+{% block title %}📸 上传合照 - 我们的合照{% endblock %}
+
+{% block extra_css %}
+<style>
+    .upload-container {
+        max-width: 600px;
+        margin: 40px auto;
+        padding: 20px;
+    }
+    
+    .upload-card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .upload-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .upload-header h2 {
+        color: #ff6b6b;
+        font-size: 1.8rem;
+        margin-bottom: 10px;
+    }
+    
+    .upload-header p {
+        color: #666;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #333;
+    }
+    
+    .form-label i {
+        color: #ff6b6b;
+        margin-right: 8px;
+    }
+    
+    .required-mark {
+        color: #ff6b6b;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #ff6b6b;
+        box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+    }
+    
+    textarea.form-control {
+        min-height: 100px;
+        resize: vertical;
+    }
+    
+    /* 文件上传区域 */
+    .file-upload-area {
+        border: 2px dashed #ddd;
+        border-radius: 10px;
+        padding: 40px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        background: #f8f9fa;
+    }
+    
+    .file-upload-area:hover {
+        border-color: #ff6b6b;
+        background: #fff5f5;
+    }
+    
+    .file-upload-area.dragover {
+        border-color: #ff6b6b;
+        background: #ffe6e6;
+    }
+    
+    .upload-icon {
+        font-size: 3rem;
+        color: #ff6b6b;
+        margin-bottom: 15px;
+    }
+    
+    .upload-text {
+        color: #666;
+        margin-bottom: 5px;
+        font-size: 1.1rem;
+    }
+    
+    .upload-hint {
+        color: #999;
+        font-size: 0.9rem;
+    }
+    
+    .file-preview {
+        margin-top: 20px;
+        text-align: center;
+    }
+    
+    .file-preview img {
+        max-width: 100%;
+        max-height: 300px;
+        border-radius: 10px;
+        display: none;
+    }
+    
+    /* 按钮组 */
+    .button-group {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+    }
+    
+    .btn-submit {
+        flex: 1;
+        padding: 12px;
+        background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .btn-submit:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+    }
+    
+    .btn-submit:active:not(:disabled) {
+        transform: translateY(0);
+    }
+    
+    .btn-submit:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    
+    .btn-cancel {
+        flex: 1;
+        padding: 12px;
+        background: #f8f9fa;
+        color: #666;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .btn-cancel:hover {
+        background: #e9ecef;
+        border-color: #ccc;
+    }
+    
+    /* 返回链接 */
+    .back-link {
+        display: inline-block;
+        margin-top: 20px;
+        color: #666;
+        text-decoration: none;
+        transition: color 0.3s;
+    }
+    
+    .back-link:hover {
+        color: #ff6b6b;
+    }
+    
+    /* 错误提示 */
+    .error-message {
+        color: #f44336;
+        background: #ffebee;
+        border: 1px solid #ffcdd2;
+        border-radius: 8px;
+        padding: 10px 15px;
+        margin-bottom: 20px;
+        display: none;
+    }
+    
+    /* 成功提示 */
+    .success-message {
+        color: #4CAF50;
+        background: #e8f5e9;
+        border: 1px solid #c8e6c9;
+        border-radius: 8px;
+        padding: 10px 15px;
+        margin-bottom: 20px;
+        display: none;
+    }
+    
+    /* 加载动画 */
+    .loading-spinner {
+        display: inline-block;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="upload-container">
+    <div class="upload-card">
+        <div class="upload-header">
+            <h2><i class="fas fa-cloud-upload-alt"></i> 上传合照</h2>
+            <p>与 TA 分享美好的瞬间，记录你们的甜蜜时光</p>
+        </div>
+        
+        <!-- 错误提示 -->
+        <div id="error-message" class="error-message"></div>
+        
+        <!-- 成功提示 -->
+        <div id="success-message" class="success-message"></div>
+        
+        <form id="upload-form" enctype="multipart/form-data">
+            <!-- 照片上传 -->
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-camera"></i> 选择照片
+                    <span class="required-mark">*</span>
+                </label>
+                <div class="file-upload-area" id="drop-area">
+                    <input type="file" id="file-input" accept="image/*" style="display: none;">
+                    <div class="upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <div class="upload-text" id="file-label-text">点击选择照片，或拖拽到此处</div>
+                    <div class="upload-hint">支持 JPG, PNG, GIF, WebP 格式，最大 5MB</div>
+                </div>
+                <div class="file-preview" id="file-preview"></div>
+            </div>
+            
+            <!-- 照片描述 -->
+            <div class="form-group">
+                <label class="form-label" for="caption">
+                    <i class="fas fa-quote-left"></i> 照片描述
+                </label>
+                <input type="text" id="caption" name="caption" class="form-control" 
+                       placeholder="为这张照片添加一个有趣的描述...">
+            </div>
+            
+            <!-- 拍摄地点 -->
+            <div class="form-group">
+                <label class="form-label" for="location">
+                    <i class="fas fa-map-marker-alt"></i> 拍摄地点
+                </label>
+                <input type="text" id="location" name="location" class="form-control" 
+                       placeholder="例如：北京故宫、上海迪士尼...">
+            </div>
+            
+            <!-- 拍摄日期 -->
+            <div class="form-group">
+                <label class="form-label" for="taken_date">
+                    <i class="far fa-calendar"></i> 拍摄日期
+                </label>
+                <input type="date" id="taken_date" name="taken_date" class="form-control">
+            </div>
+            
+            <!-- 回忆故事 -->
+            <div class="form-group">
+                <label class="form-label" for="memory">
+                    <i class="fas fa-comment-dots"></i> 回忆故事
+                </label>
+                <textarea id="memory" name="memory" class="form-control" rows="4" 
+                          placeholder="记录下关于这张照片的美好回忆..."></textarea>
+            </div>
+            
+            <!-- 按钮组 -->
+            <div class="button-group">
+                <button type="button" class="btn-cancel" onclick="goBack()">
+                    <i class="fas fa-arrow-left"></i> 返回
+                </button>
+                <button type="submit" class="btn-submit" id="upload-btn">
+                    <i class="fas fa-upload"></i> 上传照片
+                </button>
+            </div>
+        </form>
+        
+        <a href="/couple/wall" class="back-link">
+            <i class="fas fa-images"></i> 返回合照墙
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// 工具函数：显示消息
+function showMessage(message, type = 'success') {
+    const errorDiv = document.getElementById('error-message');
+    const successDiv = document.getElementById('success-message');
+    
+    if (type === 'error') {
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+        successDiv.style.display = 'none';
+        
+        // 3秒后自动隐藏
+        setTimeout(() => {
+            errorDiv.style.display = 'none';
+        }, 3000);
+    } else {
+        successDiv.textContent = message;
+        successDiv.style.display = 'block';
+        errorDiv.style.display = 'none';
+        
+        // 3秒后自动隐藏
+        setTimeout(() => {
+            successDiv.style.display = 'none';
+        }, 3000);
+    }
+}
+
+// 返回上一页
+function goBack() {
+    window.history.back();
+}
+
+// 设置默认日期为今天
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('taken_date').value = today;
+    
+    // 绑定文件上传事件
+    const fileInput = document.getElementById('file-input');
+    const dropArea = document.getElementById('drop-area');
+    const uploadForm = document.getElementById('upload-form');
+    
+    // 点击选择文件
+    dropArea.addEventListener('click', () => fileInput.click());
+    
+    // 文件选择变化
+    fileInput.addEventListener('change', function() {
+        if (this.files[0]) {
+            previewImage(this.files[0]);
+        }
+    });
+    
+    // 拖拽上传
+    dropArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropArea.classList.add('dragover');
+    });
+    
+    dropArea.addEventListener('dragleave', () => {
+        dropArea.classList.remove('dragover');
+    });
+    
+    dropArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropArea.classList.remove('dragover');
+        
+        if (e.dataTransfer.files[0]) {
+            fileInput.files = e.dataTransfer.files;
+            previewImage(e.dataTransfer.files[0]);
+        }
+    });
+    
+    // 表单提交
+    uploadForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const file = fileInput.files[0];
+        const caption = document.getElementById('caption').value.trim();
+        const memory = document.getElementById('memory').value.trim();
+        const location = document.getElementById('location').value.trim();
+        const takenDate = document.getElementById('taken_date').value;
+        
+        // 验证
+        if (!file) {
+            showMessage('请选择照片', 'error');
+            return;
+        }
+        
+        // 验证文件类型
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            showMessage('请选择图片文件（支持 JPG, PNG, GIF, WebP）', 'error');
+            return;
+        }
+        
+        // 验证文件大小（5MB）
+        const maxSize = 5 * 1024 * 1024;
+        if (file.size > maxSize) {
+            showMessage('图片大小不能超过 5MB', 'error');
+            return;
+        }
+        
+        // 创建 FormData
+        const formData = new FormData();
+        formData.append('file', file);
+        if (caption) formData.append('caption', caption);
+        if (memory) formData.append('memory', memory);
+        if (location) formData.append('location', location);
+        if (takenDate) formData.append('taken_date', takenDate);
+        
+        // 上传按钮状态
+        const uploadBtn = document.getElementById('upload-btn');
+        const originalText = uploadBtn.innerHTML;
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin loading-spinner"></i> 上传中...';
+        
+        try {
+            const response = await fetch('/couple/upload', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok && data.success) {
+                showMessage(data.message || '上传成功！', 'success');
+                
+                // 清空表单
+                uploadForm.reset();
+                document.getElementById('file-preview').innerHTML = '';
+                document.getElementById('file-label-text').textContent = '点击选择照片，或拖拽到此处';
+                
+                // 延迟 1.5 秒后跳转到合照墙
+                setTimeout(() => {
+                    window.location.href = '/couple/wall';
+                }, 1500);
+            } else {
+                showMessage(data.error || '上传失败，请重试', 'error');
+                uploadBtn.innerHTML = originalText;
+                uploadBtn.disabled = false;
+            }
+        } catch (error) {
+            console.error('上传失败:', error);
+            showMessage('网络错误，请稍后重试', 'error');
+            uploadBtn.innerHTML = originalText;
+            uploadBtn.disabled = false;
+        }
+    });
+});
+
+// 图片预览功能
+function previewImage(file) {
+    const preview = document.getElementById('file-preview');
+    const labelText = document.getElementById('file-label-text');
+    
+    if (file) {
+        const reader = new FileReader();
+        const fileName = file.name;
+        
+        // 更新标签文本
+        labelText.textContent = fileName;
+        
+        reader.onload = function(e) {
+            preview.innerHTML = `
+                <img src="${e.target.result}" alt="预览" style="max-width: 100%; max-height: 300px; border-radius: 10px;">
+            `;
+        };
+        
+        reader.readAsDataURL(file);
+    } else {
+        preview.innerHTML = '';
+        labelText.textContent = '点击选择照片，或拖拽到此处';
+    }
+}
+</script>
+{% endblock %}
