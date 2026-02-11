@@ -5,3 +5,4 @@ sqlalchemy==2.0.45
 python-multipart==0.0.21
 python-dotenv==1.2.1
 requests==2.32.5
+itsdangerous==2.2.0
