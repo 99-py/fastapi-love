@@ -46,7 +46,28 @@ def album_timeline(request: Request, db: Session = Depends(get_db)):
         return RedirectResponse("/login")
 
     # 查询照片和评论
-    photos = db.query(AlbumPhoto).order_by(AlbumPhoto.shoot_date.desc()).all()
+    try:
+        photos = db.query(AlbumPhoto).order_by(AlbumPhoto.shoot_date.desc()).all()
+    except Exception as e:
+        from sqlalchemy import text
+        query = text("""
+            SELECT id, "user", memory, location, shoot_date, image, created_at
+            FROM album_photos 
+            ORDER BY shoot_date DESC
+        """)
+        result = db.execute(query)
+        photos = []
+        for row in result:
+            photos.append({
+                "id": row.id,
+                "user": row.user,
+                "memory": row.memory,
+                "location": row.location,
+                "shoot_date": row.shoot_date,
+                "image": row.image,
+                "image_url": row.image,  # 映射
+                "created_at": row.created_at
+            })
     comments = db.query(AlbumComment).all()
 
     # 构建评论映射

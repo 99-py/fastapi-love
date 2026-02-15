@@ -9,6 +9,7 @@ from app.api.todo import router as todo_router
 from app.api.love import router as love_router
 from app.api.auth import router as auth_router
 from app.api import memory
+from app.db_migration import run_migrations
 from app.init_db import init_database
 # from app.api import anniversary
 from app.api import auth, todo, page, weather, couple
@@ -90,7 +91,7 @@ print("Cloud Name:", os.getenv("CLOUDINARY_CLOUD_NAME"))
 async def startup_event():
     """应用启动时执行"""
     print("🚀 应用启动中...")
-
+    run_migrations()  # 添加这行
     # 打印环境变量检查
     import os
     print(f"Cloud Name: {os.getenv('CLOUDINARY_CLOUD_NAME', '未设置')}")

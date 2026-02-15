@@ -77,7 +77,29 @@ def timeline(request: Request, db: Session = Depends(get_db)):
     if not request.session.get("user_id"):
         return RedirectResponse("/login")
 
-    moments = db.query(Moment).order_by(Moment.created_at.desc()).all()
+    # 修改后：
+    try:
+        # 先尝试新的查询（包含Cloudinary字段）
+        moments = db.query(Moment).order_by(Moment.created_at.desc()).all()
+    except Exception as e:
+        # 如果失败，使用旧字段查询
+        from sqlalchemy import text
+        query = text("""
+            SELECT id, "user", content, image, created_at
+            FROM moments 
+            ORDER BY created_at DESC
+        """)
+        result = db.execute(query)
+        moments = []
+        for row in result:
+            moments.append({
+                "id": row.id,
+                "user": row.user,
+                "content": row.content,
+                "image": row.image,
+                "image_url": row.image,  # 将image映射到image_url
+                "created_at": row.created_at
+            })
 
     return templates.TemplateResponse(
         "timeline.html",
