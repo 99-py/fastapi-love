@@ -40,9 +40,16 @@ class Moment(Base):
     id = Column(Integer, primary_key=True, index=True)
     user = Column(String, index=True)      # me / her
     content = Column(Text, nullable=True)  # 文字
-    image = Column(String, nullable=True)  # 图片 URL
-    created_at = Column(DateTime, default=datetime.utcnow)
 
+    # Cloudinary存储字段
+    cloudinary_public_id = Column(String(255), nullable=True)  # Cloudinary图片ID
+    image_url = Column(String(500), nullable=True)  # Cloudinary图片URL
+    format = Column(String(10), nullable=True)  # 图片格式
+    width = Column(Integer, nullable=True)  # 图片宽度
+    height = Column(Integer, nullable=True)  # 图片高度
+    bytes = Column(Integer, nullable=True)  # 文件大小
+
+    created_at = Column(DateTime, default=datetime.now)
 class AlbumPhoto(Base):
     __tablename__ = "album_photos"
 
@@ -53,8 +60,15 @@ class AlbumPhoto(Base):
     location = Column(String, nullable=True)    # 地点
     shoot_date = Column(DateTime, nullable=False)  # 拍摄日期
 
-    image = Column(String, nullable=True)       # 图片路径
+    # Cloudinary存储
+    cloudinary_public_id = Column(String(255), nullable=True)  # Cloudinary的图片ID
+    image_url = Column(String(500))  # Cloudinary的图片URL
+    format = Column(String(10), nullable=True)  # 图片格式
+
     created_at = Column(DateTime, default=datetime.now)
+
+    # 与评论的关系
+    comments = relationship("AlbumComment", back_populates="photo", cascade="all, delete-orphan")
 
 class AlbumComment(Base):
     __tablename__ = "album_comments"
@@ -64,26 +78,40 @@ class AlbumComment(Base):
     user = Column(String, index=True)       # me / her
     content = Column(Text)
     created_at = Column(DateTime, default=datetime.now)
+    photo = relationship("AlbumPhoto", back_populates="comments")
 
 
 class CouplePhoto(Base):
     __tablename__ = "couple_photos"
 
     id = Column(Integer, primary_key=True, index=True)
-    image_url = Column(String, nullable=False)  # 图片路径
-    caption = Column(String, default="")  # 描述
+    owner_id = Column(Integer, ForeignKey("users.id"))
+
+    # 图片相关信息
+    caption = Column(String(200), nullable=True)  # 图片标题
+    memory = Column(Text, nullable=True)  # 回忆故事
+    location = Column(String(100), nullable=True)  # 拍摄地点
+
+    # Cloudinary存储字段
+    cloudinary_public_id = Column(String(255), nullable=True)  # Cloudinary图片ID
+    image_url = Column(String(500))  # Cloudinary图片URL
+    format = Column(String(10), nullable=True)  # 图片格式
+    width = Column(Integer, nullable=True)  # 图片宽度
+    height = Column(Integer, nullable=True)  # 图片高度
+    bytes = Column(Integer, nullable=True)  # 文件大小
+
+    # 元数据
+    taken_date = Column(Date, nullable=True)  # 拍摄日期
     is_favorite = Column(Boolean, default=False)  # 是否收藏
     is_private = Column(Boolean, default=False)  # 是否私密
-    created_at = Column(DateTime, default=datetime.utcnow)  # 创建时间
-    owner_id = Column(Integer, ForeignKey("users.id"))  # 上传者
-    owner = relationship("User")  # 用户关系
 
-    # 添加新字段
-    location = Column(String, nullable=True)  # 拍摄地点
-    taken_date = Column(DateTime, nullable=True)  # 拍摄日期
-    tags = Column(String, nullable=True)  # 标签，用逗号分隔
-    memory = Column(Text, nullable=True)  # 回忆故事
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
+    # 关系
+    owner = relationship("User", back_populates="couple_photos")
+    likes = relationship("CouplePhotoLike", back_populates="photo", cascade="all, delete-orphan")
+    comments = relationship("CouplePhotoComment", back_populates="photo", cascade="all, delete-orphan")
 
 class MemoryDay(Base):
     """纪念日主表 - 时间锚点"""

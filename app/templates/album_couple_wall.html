@@ -126,22 +126,19 @@
         {% for photo in photos %}
         <div class="photo-item" data-id="{{ photo.id }}" data-favorite="{{ photo.is_favorite|lower }}">
             <!-- 图片标签在这里 -->
-            {% if photo.image_url %}
-            <img src="{{ photo.image_url }}" alt="{{ photo.caption or '合照' }}"
-                 class="photo-image" onclick="viewImage('{{ photo.image_url }}')">
+            {% if photo.cloudinary_public_id and photo.format %}
+            <img src="https://res.cloudinary.com/{{ cloudinary_cloud_name }}/image/upload/w_300,h_300,c_fill/{{ photo.cloudinary_public_id }}.{{ photo.format }}"
+             alt="{{ photo.caption or photo.memory or '我们的回忆' }}"
+             class="photo-img"
+             data-public-id="{{ photo.cloudinary_public_id }}"
+             loading="lazy">
+            {% else %}
+            <img src="{{ photo.image_url }}"
+             alt="{{ photo.caption or photo.memory or '我们的回忆' }}"
+             class="photo-img"
+             loading="lazy">
             {% endif %}
 
-            <div class="photo-overlay"></div>
-
-            <div class="photo-actions">
-                <button class="action-btn favorite {% if photo.is_favorite %}active{% endif %}"
-                        onclick="toggleFavorite({{ photo.id }}, this)">
-                    <i class="fas fa-star"></i>
-                </button>
-                <button class="action-btn" onclick="deletePhoto({{ photo.id }})">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
 
             <div class="photo-info">
                 <div class="photo-caption">{{ photo.caption or "美好的回忆" }}</div>
@@ -197,7 +194,7 @@
     let currentPage = 1;
     let currentFilter = 'all';
     let isLoading = false;
-    let hasMore = {{ "true" if total > 20 else "false" }};
+    // let hasMore = {{ "true" if total > 20 else "false" }};
 
 // 工具函数
 function showToast(message, type = 'success') {

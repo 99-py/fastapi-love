@@ -1,5 +1,5 @@
 from pathlib import Path
-
+from dotenv import load_dotenv
 from app.db import Base, engine, SessionLocal
 from app.models import User,Couple
 from app.api.weather import router as weather_router
@@ -9,6 +9,7 @@ from app.api.todo import router as todo_router
 from app.api.love import router as love_router
 from app.api.auth import router as auth_router
 from app.api import memory
+from app.init_db import init_database
 # from app.api import anniversary
 from app.api import auth, todo, page, weather, couple
 from starlette.middleware.sessions import SessionMiddleware
@@ -55,6 +56,7 @@ app.include_router(memory.router, tags=["纪念日"])
 app.include_router(couple.router,tags=["Couple Photos"])
 # 建表
 Base.metadata.create_all(bind=engine)
+load_dotenv()
 # 种子数据（开发期）
 def init_demo_data():
     db = SessionLocal()
@@ -76,8 +78,19 @@ def init_demo_data():
     db.close()
 
 init_demo_data()
+print("Cloud Name:", os.getenv("CLOUDINARY_CLOUD_NAME"))
 
 
+@app.on_event("startup")
+async def startup_event():
+    print("🚀 应用启动中...")
+
+    # 初始化数据库（确保表结构正确）
+    try:
+        init_database()
+    except Exception as e:
+        print(f"⚠️  数据库初始化警告: {e}")
+        # 继续启动，可能字段已经存在
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     start_time = time.time()

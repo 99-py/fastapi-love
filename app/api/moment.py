@@ -9,15 +9,16 @@ import uuid
 from pathlib import Path
 from app.db import get_db
 from app.models import Moment
+from app.service.image_service import CloudinaryService  # 新增导入
 
 router = APIRouter(prefix="/moments", tags=["Moments"])
 
 # 确保模板目录正确
 templates = Jinja2Templates(directory="app/templates")
 
-# 上传目录配置
-UPLOAD_DIR = "static/uploads/moments"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+# 允许的文件类型
+ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.webp'}
+ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
 
 
 # ========== 页面路由 ==========
@@ -37,9 +38,11 @@ def timeline(request: Request, db: Session = Depends(get_db)):
             "id": m.id,
             "user": m.user,  # 明确是 username
             "content": m.content,
-            "image": m.image,
+            "image": m.image_url,  # 使用Cloudinary的image_url
             "created_at": m.created_at,
-            "is_owner": m.user == user  # ⭐ 核心
+            "is_owner": m.user == user,  # ⭐ 核心
+            "format": m.format,  # 新增：图片格式
+            "cloudinary_public_id": m.cloudinary_public_id  # 新增：Cloudinary ID
         })
     return templates.TemplateResponse(
         "timeline.html",
@@ -60,7 +63,7 @@ async def create_moment(
         image: UploadFile = File(None),
         db: Session = Depends(get_db)
 ):
-    """创建动态"""
+    """创建动态（使用Cloudinary存储图片）"""
     # 检查用户是否登录
     user = request.session.get("username")
     if not user:
@@ -74,7 +77,13 @@ async def create_moment(
 
     try:
         # 处理图片上传
-        image_path = None
+        cloudinary_public_id = None
+        image_url = None
+        format = None
+        width = None
+        height = None
+        file_bytes = None
+
         if image and image.filename:
             # 验证文件类型
             allowed_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.webp'}
@@ -83,19 +92,32 @@ async def create_moment(
             if ext not in allowed_extensions:
                 return JSONResponse(
                     status_code=400,
-                    content={"error": "不支持的文件类型"}
+                    content={"error": f"不支持的文件类型，请使用: {', '.join(allowed_extensions)}"}
                 )
 
-            # 生成唯一文件名
-            filename = f"{uuid.uuid4()}{ext}"
-            file_path = os.path.join(UPLOAD_DIR, filename)
+            # 验证MIME类型
+            if image.content_type not in ALLOWED_MIME_TYPES:
+                return JSONResponse(
+                    status_code=400,
+                    content={"error": f"不支持的文件类型，请使用: {', '.join(ALLOWED_MIME_TYPES)}"}
+                )
 
-            # 保存文件
-            with open(file_path, "wb") as buffer:
-                content_bytes = await image.read()
-                buffer.write(content_bytes)
+            # 上传到Cloudinary
+            upload_result = await CloudinaryService.upload_image(image, user, folder="love_app/moments")
 
-            image_path = f"/static/uploads/moments/{filename}"
+            if not upload_result.get("success"):
+                error_msg = upload_result.get("error", "上传失败")
+                return JSONResponse(
+                    status_code=400,
+                    content={"error": error_msg}
+                )
+
+            cloudinary_public_id = upload_result.get("public_id")
+            image_url = upload_result.get("url")
+            format = upload_result.get("format")
+            width = upload_result.get("width")
+            height = upload_result.get("height")
+            file_bytes = upload_result.get("bytes")
 
         # 创建动态记录 - 使用本地时间
         now = datetime.now()
@@ -103,7 +125,12 @@ async def create_moment(
         moment = Moment(
             user=user,
             content=content,
-            image=image_path,
+            cloudinary_public_id=cloudinary_public_id,
+            image_url=image_url,
+            format=format,
+            width=width,
+            height=height,
+            bytes=file_bytes,
             created_at=now
         )
 
@@ -114,17 +141,19 @@ async def create_moment(
         # 判断请求类型
         if request.headers.get("x-requested-with") == "XMLHttpRequest":
             # AJAX 请求返回 JSON
-            return {
+            return JSONResponse({
                 "success": True,
                 "message": "发布成功",
                 "moment": {
                     "id": moment.id,
                     "user": moment.user,
                     "content": moment.content,
-                    "image": moment.image,
-                    "created_at": moment.created_at.isoformat() if moment.created_at else None
+                    "image": moment.image_url,
+                    "created_at": moment.created_at.isoformat() if moment.created_at else None,
+                    "cloudinary_public_id": moment.cloudinary_public_id,
+                    "format": moment.format
                 }
-            }
+            })
         else:
             # 普通表单提交重定向
             return RedirectResponse("/moments/timeline", status_code=303)
@@ -153,49 +182,101 @@ def list_moments(request: Request, db: Session = Depends(get_db)):
             "id": m.id,
             "user": m.user,
             "content": m.content,
-            "image": m.image,
+            "image": m.image_url,  # 使用Cloudinary的image_url
             "created_at": m.created_at.isoformat() if m.created_at else None,
-            "is_owner": m.user == user  # 添加 is_owner 字段
+            "is_owner": m.user == user,  # 添加 is_owner 字段
+            "cloudinary_public_id": m.cloudinary_public_id,
+            "format": m.format
         }
         result.append(moment_data)
 
     return result
 
 
-# ========== 以下路由没有设置默认值 ==========
+# ========== 以下路由需要修改删除逻辑 ==========
 @router.get("/{moment_id}")
-def get_moment(moment_id: int, db: Session = Depends(get_db)):  # ✅ 正确：没有默认值
+def get_moment(moment_id: int, db: Session = Depends(get_db)):
     """获取单个动态"""
     moment = db.query(Moment).filter(Moment.id == moment_id).first()
     if not moment:
         raise HTTPException(status_code=404, detail="动态不存在")
-    return moment
+
+    # 返回包含Cloudinary信息的数据
+    return {
+        "id": moment.id,
+        "user": moment.user,
+        "content": moment.content,
+        "image": moment.image_url,
+        "cloudinary_public_id": moment.cloudinary_public_id,
+        "format": moment.format,
+        "created_at": moment.created_at
+    }
 
 
 @router.put("/{moment_id}")
 def update_moment(
-        moment_id: int,  # ✅ 正确：没有默认值
+        request: Request,
+        moment_id: int,
         content: str = Form(...),
         db: Session = Depends(get_db)
 ):
     """更新动态"""
+    user = request.session.get("username")
+    if not user:
+        raise HTTPException(status_code=401, detail="未登录")
+
     moment = db.query(Moment).filter(Moment.id == moment_id).first()
     if not moment:
         raise HTTPException(status_code=404, detail="动态不存在")
+
+    # 检查权限
+    if moment.user != user:
+        raise HTTPException(status_code=403, detail="无权修改此动态")
 
     moment.content = content
     db.commit()
     db.refresh(moment)
-    return moment
+
+    return {
+        "success": True,
+        "message": "更新成功",
+        "moment": {
+            "id": moment.id,
+            "content": moment.content,
+            "image": moment.image_url,
+            "created_at": moment.created_at.isoformat() if moment.created_at else None
+        }
+    }
 
 
 @router.delete("/{moment_id}")
-def delete_moment(moment_id: int, db: Session = Depends(get_db)):  # ✅ 正确：没有默认值
-    """删除动态"""
+async def delete_moment(
+        request: Request,
+        moment_id: int,
+        db: Session = Depends(get_db)
+):
+    """删除动态（同时删除Cloudinary上的图片）"""
+    user = request.session.get("username")
+    if not user:
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JSONResponse(
+                status_code=401,
+                content={"error": "未登录"}
+            )
+        raise HTTPException(status_code=401, detail="未登录")
+
     moment = db.query(Moment).filter(Moment.id == moment_id).first()
     if not moment:
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JSONResponse(
+                status_code=404,
+                content={"error": "动态不存在"}
+            )
         raise HTTPException(status_code=404, detail="动态不存在")
 
-    db.delete(moment)
-    db.commit()
-    return {"message": "删除成功"}
+    # 检查权限
+    if moment.user != user:
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JSONResponse(
+                status_code=403,
+                content={"error": "无权删除此动态"})
