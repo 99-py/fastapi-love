@@ -1,7 +1,7 @@
 # app/db_migration.py
 import logging
 from sqlalchemy import text, inspect
-from app.database import engine
+from app.db import engine
 
 logger = logging.getLogger(__name__)
 
