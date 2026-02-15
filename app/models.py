@@ -14,7 +14,8 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, nullable=False)
     memory_days = relationship("MemoryDay", back_populates="owner", cascade="all, delete-orphan")
-
+    # 🌟 添加这行：couple_photos 关系
+    couple_photos = relationship("CouplePhoto", back_populates="owner", cascade="all, delete-orphan")
 
 class Couple(Base):
     __tablename__ = "couples"

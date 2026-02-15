@@ -88,14 +88,29 @@ print("Cloud Name:", os.getenv("CLOUDINARY_CLOUD_NAME"))
 
 @app.on_event("startup")
 async def startup_event():
+    """应用启动时执行"""
     print("🚀 应用启动中...")
 
-    # 初始化数据库（确保表结构正确）
+    # 打印环境变量检查
+    import os
+    print(f"Cloud Name: {os.getenv('CLOUDINARY_CLOUD_NAME', '未设置')}")
+
+    # 初始化数据库（捕获所有异常，不影响启动）
     try:
         init_database()
+        print("✅ 数据库初始化完成")
     except Exception as e:
-        print(f"⚠️  数据库初始化警告: {e}")
-        # 继续启动，可能字段已经存在
+        print(f"⚠️ 数据库初始化警告: {e}")
+        # 继续启动，可能表已经存在
+
+    # 不再调用 init_demo_data()，或者用更安全的方式
+    try:
+        # from app.init_data import init_demo_data
+        init_demo_data()
+        print("✅ 示例数据初始化完成")
+    except Exception as e:
+        print(f"⚠️ 示例数据初始化失败: {e}")
+        # 继续启动，不影响主要功能
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     start_time = time.time()
