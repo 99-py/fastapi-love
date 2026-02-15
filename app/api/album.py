@@ -5,6 +5,7 @@ import time
 import os
 
 from fastapi import APIRouter, Request, Depends,Form,UploadFile,File
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from starlette.responses import RedirectResponse, HTMLResponse, JSONResponse
 from datetime import datetime
@@ -49,7 +50,10 @@ def album_timeline(request: Request, db: Session = Depends(get_db)):
     try:
         photos = db.query(AlbumPhoto).order_by(AlbumPhoto.shoot_date.desc()).all()
     except Exception as e:
-        from sqlalchemy import text
+        # 回滚并使用备用查询
+        print(f"⚠️ 查询失败，回滚事务并使用备用查询: {e}")
+        db.rollback()
+
         query = text("""
             SELECT id, "user", memory, location, shoot_date, image, created_at
             FROM album_photos 

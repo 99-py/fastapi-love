@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Request, Depends
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from app.models import Moment
 from app.db import SessionLocal
@@ -74,21 +75,25 @@ def album(request: Request):
 #     )
 @router.get("/timeline", response_class=HTMLResponse)
 def timeline(request: Request, db: Session = Depends(get_db)):
-    if not request.session.get("user_id"):
+    user = request.session.get("user_id")
+    if not user:
         return RedirectResponse("/login")
 
     # 修改后：
     try:
-        # 先尝试新的查询（包含Cloudinary字段）
+        # 尝试新的查询（包含Cloudinary字段）
         moments = db.query(Moment).order_by(Moment.created_at.desc()).all()
     except Exception as e:
-        # 如果失败，使用旧字段查询
-        from sqlalchemy import text
+        # 如果失败，回滚事务并使用原始SQL查询
+        print(f"⚠️ 查询失败，回滚事务并使用备用查询: {e}")
+        db.rollback()  # 回滚失败的事务
+
+        # 使用原始SQL查询，只选择存在的字段
         query = text("""
-            SELECT id, "user", content, image, created_at
-            FROM moments 
-            ORDER BY created_at DESC
-        """)
+                SELECT id, "user", content, image, created_at
+                FROM moments 
+                ORDER BY created_at DESC
+            """)
         result = db.execute(query)
         moments = []
         for row in result:
@@ -97,7 +102,7 @@ def timeline(request: Request, db: Session = Depends(get_db)):
                 "user": row.user,
                 "content": row.content,
                 "image": row.image,
-                "image_url": row.image,  # 将image映射到image_url
+                "image_url": row.image,  # 将旧字段映射到新字段名
                 "created_at": row.created_at
             })
 
@@ -105,6 +110,7 @@ def timeline(request: Request, db: Session = Depends(get_db)):
         "timeline.html",
         {
             "request": request,
-            "moments": moments
+            "moments": moments,
+            "user": user
         }
     )
