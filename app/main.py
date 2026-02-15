@@ -77,7 +77,12 @@ def init_demo_data():
         db.commit()
     db.close()
 
-init_demo_data()
+# 或者用try-except包裹
+try:
+    init_demo_data()
+except Exception as e:
+    print(f"⚠️ 初始化数据失败: {e}")
+    print("应用继续启动，不影响主要功能")
 print("Cloud Name:", os.getenv("CLOUDINARY_CLOUD_NAME"))
 
 

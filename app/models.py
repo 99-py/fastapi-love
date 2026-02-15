@@ -74,7 +74,8 @@ class AlbumComment(Base):
     __tablename__ = "album_comments"
 
     id = Column(Integer, primary_key=True, index=True)
-    photo_id = Column(Integer)
+    # 🌟 关键：必须有外键约束
+    photo_id = Column(Integer, ForeignKey("album_photos.id", ondelete="CASCADE"))  # 重要！
     user = Column(String, index=True)       # me / her
     content = Column(Text)
     created_at = Column(DateTime, default=datetime.now)
