@@ -197,3 +197,31 @@ class MemorySnapshot(Base):
 
     def __repr__(self):
         return f"<MemorySnapshot {self.year}: {self.note[:30]}>"
+
+class CouplePhotoLike(Base):
+    """情侣照片点赞"""
+    __tablename__ = "couple_photo_likes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    photo_id = Column(Integer, ForeignKey("couple_photos.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    created_at = Column(DateTime, default=datetime.now)
+
+    # 关系
+    photo = relationship("CouplePhoto", back_populates="likes")
+    user = relationship("User")  # 如果不需要通过 User 反向访问点赞，可以只保留 photo 关系
+
+
+class CouplePhotoComment(Base):
+    """情侣照片评论"""
+    __tablename__ = "couple_photo_comments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    photo_id = Column(Integer, ForeignKey("couple_photos.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=datetime.now)
+
+    # 关系
+    photo = relationship("CouplePhoto", back_populates="comments")
+    user = relationship("User")
