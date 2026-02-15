@@ -91,6 +91,17 @@ print("Cloud Name:", os.getenv("CLOUDINARY_CLOUD_NAME"))
 async def startup_event():
     """应用启动时执行"""
     print("🚀 应用启动中...")
+    # 修复数据库
+    try:
+        from app.db_fix import fix_database
+        if fix_database():
+            print("✅ 数据库修复成功")
+        else:
+            print("⚠️ 数据库修复可能失败，应用将继续启动")
+    except Exception as e:
+        print(f"⚠️ 数据库修复异常: {e}")
+
+    print("✅ 应用启动完成")
     run_migrations()  # 添加这行
     # 打印环境变量检查
     import os
